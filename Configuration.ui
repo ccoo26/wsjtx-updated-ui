@@ -4189,7 +4189,7 @@ Right click for insert and delete options.</string>
          </layout>
         </widget>
        </item>
-       <item row="4" column="0" colspan="2">
+       <item row="5" column="0" colspan="2">
         <spacer name="verticalSpacer_9">
          <property name="orientation">
           <enum>Qt::Vertical</enum>
@@ -4202,6 +4202,70 @@ Right click for insert and delete options.</string>
          </property>
         </spacer>
        </item>
+        <item row="4" column="0" colspan="2">
+         <widget class="QGroupBox" name="gbQrzLogbook">
+          <property name="toolTip">
+           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Upload each logged QSO to your QRZ.com Logbook. Uses the Logbook API key shown under My Logbook &amp;gt; Settings on QRZ.com (QRZ requires an XML subscription or higher for uploads). QSOs that cannot be sent are kept and retried automatically.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          </property>
+          <property name="title">
+           <string>Upload QSOs to QRZ Logbook</string>
+          </property>
+          <property name="checkable">
+           <bool>true</bool>
+          </property>
+          <property name="checked">
+           <bool>false</bool>
+          </property>
+          <layout class="QHBoxLayout" name="qrz_logbook_layout">
+           <item>
+            <widget class="QLabel" name="qrz_api_key_label">
+             <property name="text">
+              <string>Logbook API key:</string>
+             </property>
+             <property name="buddy">
+              <cstring>leQrzApiKey</cstring>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLineEdit" name="leQrzApiKey">
+             <property name="toolTip">
+              <string>QRZ Logbook API key, e.g. ABCD-0A0B-1C1D-2E2F</string>
+             </property>
+             <property name="echoMode">
+              <enum>QLineEdit::PasswordEchoOnEdit</enum>
+             </property>
+             <property name="placeholderText">
+              <string>XXXX-XXXX-XXXX-XXXX</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="pbTestQrz">
+             <property name="toolTip">
+              <string>Check the key with QRZ.com</string>
+             </property>
+             <property name="text">
+              <string>Test Key</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="labQrzStatus">
+             <property name="minimumSize">
+              <size>
+               <width>160</width>
+               <height>0</height>
+              </size>
+             </property>
+             <property name="text">
+              <string/>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
       </layout>
      </widget>
      <widget class="QWidget" name="alerts_tab">

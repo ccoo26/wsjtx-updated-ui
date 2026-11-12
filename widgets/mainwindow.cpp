@@ -566,6 +566,13 @@ MainWindow::MainWindow(QDir const& temp_directory, bool multiple,
   createStatusBar();
   add_child_to_event_filter (this);
   setup_main_splitter ();
+
+  // QRZ Logbook auto-upload: un-sent QSOs survive restarts in qrz_pending.adi
+  connect (&m_qrzLogbook, &QrzLogbook::status, this, [this] (QString const& message, bool error) {
+      statusBar ()->showMessage (message, error ? 20000 : 6000);
+    });
+  m_qrzLogbook.setPendingFile (m_config.writeable_data_dir ().absoluteFilePath ("qrz_pending.adi"));
+  m_qrzLogbook.setApiKey (m_config.qrz_logbook_enabled () ? m_config.qrz_api_key () : QString {});
   ui->dxGridEntry->setValidator (new MaidenheadLocatorValidator {this});
   ui->dxCallEntry->setValidator (new CallsignValidator {this});
   ui->sbTR->values ({5, 10, 15, 30, 60, 120, 300, 900, 1800});
@@ -3584,6 +3591,7 @@ void MainWindow::on_actionSettings_triggered()           // Setup Dialog (Settin
   auto psk_on = m_config.spot_to_psk_reporter ();
   if (QDialog::Accepted == m_config.exec ()) {
     checkMSK144ContestType();
+    m_qrzLogbook.setApiKey (m_config.qrz_logbook_enabled () ? m_config.qrz_api_key () : QString {});
     if (m_config.my_callsign () != callsign) {
       m_baseCall = Radio::base_callsign (m_config.my_callsign ());
       ui->tx1->setEnabled (elide_tx1_not_allowed () || ui->tx1->isEnabled ());
@@ -10740,6 +10748,13 @@ void MainWindow::acceptQSO (QDateTime const& QSO_date_off, QString const& call, 
   {
     m_cloudlog.logQso(ADIF);
   }
+
+  // Upload to QRZ Logbook if enabled
+  if (m_config.qrz_logbook_enabled ())
+    {
+      m_qrzLogbook.setApiKey (m_config.qrz_api_key ());
+      m_qrzLogbook.upload (ADIF);
+    }
 
   // Log to eqsl.cc
   if (m_config.send_to_eqsl()) Eqsl->upload(m_config.eqsl_username(),m_config.eqsl_passwd(),m_config.eqsl_nickname(),call,mode,QSO_date_on,rpt_sent,m_config.bands ()->find (dial_freq),comments);

@@ -181,6 +181,8 @@ public:
   QString cloudlog_api_url() const;
   QString cloudlog_api_key() const;
   qint32 cloudlog_api_station_id() const;
+  bool qrz_logbook_enabled () const;
+  QString qrz_api_key () const;
   bool prompt_to_log () const;
   bool autoLog() const;
   bool contestingOnly() const;

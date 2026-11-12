@@ -42,6 +42,7 @@
 #include "DisplayManual.hpp"
 #include "Network/PSKReporter.hpp"
 #include "Network/Cloudlog.hpp"
+#include "Network/QrzLogbook.hpp"
 #include "logbook/logbook.h"
 #include "astro.h"
 #include "widgets/QSYMessageCreator.h"
@@ -524,6 +525,7 @@ private:
   Configuration m_config;
   LogBook m_logBook;            // must be after Configuration construction
   Cloudlog m_cloudlog;
+  QrzLogbook m_qrzLogbook;
   WSPRBandHopping m_WSPR_band_hopping;
   bool m_WSPR_tx_next;
   MessageBox m_rigErrorMessageBox;
