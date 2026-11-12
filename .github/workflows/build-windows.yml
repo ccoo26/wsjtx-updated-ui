@@ -141,7 +141,7 @@ jobs:
             --enable-shared --disable-static \
             --without-cxx-binding \
             --without-readline \
-            CFLAGS="-DNDEBUG -g -O2 -fdata-sections -ffunction-sections" \
+            CFLAGS="-DNDEBUG -g -O2 -fdata-sections -ffunction-sections -include assert.h" \
             LDFLAGS="-Wl,--gc-sections"
           make -j$(nproc)
           make install-strip
