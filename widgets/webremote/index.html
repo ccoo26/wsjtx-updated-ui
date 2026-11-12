@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#202020">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="manifest" href="/manifest.json">
+<title>WSJT-X Remote</title>
+<style>
+:root{
+  --bg:#202020;--layer:#1c1c1c;--card:#2b2b2b;--ctrl:#2d2d2d;--ctrl-hover:#373737;
+  --border:#3a3a3a;--border-strong:#4d4d4d;--text:#fff;--text2:#c5c5c5;--text3:#7a7a7a;
+  --accent:#60cdff;--accent-text:#000;--danger:#ff5f5f;--danger-bg:#c42b1c;--ok:#6ccb5f;--warn:#fce100;
+  --mono:ui-monospace,"Cascadia Mono",Consolas,"DejaVu Sans Mono",Menlo,monospace;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--text);
+  font:15px/1.35 "Segoe UI Variable","Segoe UI",system-ui,-apple-system,Roboto,sans-serif}
+button,select,input{font:inherit;color:inherit}
+.hidden{display:none!important}
+#app{display:flex;flex-direction:column;height:100%;height:100dvh}
+
+/* top bar */
+header{background:var(--layer);border-bottom:1px solid var(--border);padding:8px 12px calc(6px) 12px;
+  padding-top:max(8px,env(safe-area-inset-top))}
+.row{display:flex;align-items:center;gap:8px}
+.freq{font-size:22px;font-weight:600;letter-spacing:.3px;font-variant-numeric:tabular-nums}
+.muted{color:var(--text2)}
+.small{font-size:12px}
+.spacer{flex:1}
+select{min-width:0;max-width:52vw;background:var(--ctrl);border:1px solid var(--border);border-bottom-color:var(--border-strong);
+  border-radius:6px;padding:4px 8px;min-height:32px}
+.pill{white-space:nowrap;flex:none;border-radius:999px;padding:3px 10px;font-size:13px;font-weight:600;background:var(--ctrl);color:var(--text2)}
+.pill.rx{background:#16381a;color:var(--ok)}
+.pill.tx{background:var(--danger-bg);color:#fff;animation:pulse 1s infinite}
+.pill.tune{background:#5a4a00;color:var(--warn)}
+.pill.off{background:var(--ctrl);color:var(--text3)}
+@keyframes pulse{50%{opacity:.75}}
+.progress{height:4px;background:var(--border);border-radius:2px;margin-top:6px;overflow:hidden}
+.progress>div{height:100%;width:0;background:var(--accent);transition:width .25s linear}
+.progress.tx>div{background:var(--danger)}
+
+/* waterfall */
+#wfWrap{position:relative;background:#000;border-bottom:1px solid var(--border);height:19vh;min-height:110px;touch-action:manipulation}
+#wf{width:100%;height:100%;object-fit:fill;display:block}
+.marker{position:absolute;top:0;bottom:0;width:2px;pointer-events:none}
+.marker.rx{background:var(--ok)}.marker.tx{background:var(--danger)}
+#wfHint{position:absolute;right:6px;bottom:4px;font-size:11px;color:#ffffffaa;pointer-events:none}
+
+/* tabs */
+nav{display:flex;gap:4px;padding:6px 8px;background:var(--bg)}
+nav button{flex:1;background:transparent;border:none;border-bottom:2px solid transparent;color:var(--text2);
+  padding:7px 4px;font-weight:600}
+nav button.on{color:var(--text);border-bottom-color:var(--accent)}
+main{flex:1;min-height:0;display:flex}
+.pane{flex:1;min-width:0;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:4px 6px 8px}
+.ptitle{display:none;color:var(--text2);font-size:12px;font-weight:600;padding:6px 4px;position:sticky;top:0;background:var(--bg)}
+.line{font-family:var(--mono);font-size:13px;white-space:pre;overflow:hidden;text-overflow:ellipsis;
+  padding:5px 6px;border-radius:5px;margin:1px 0;cursor:pointer}
+.line:active{outline:2px solid var(--accent)}
+.line.sep{cursor:default;color:var(--text3);background:transparent!important;font-size:11px;text-align:center}
+
+/* tx panel */
+#txPanel{padding:10px 12px 16px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:10px}
+.card h3{margin:0 0 8px;font-size:13px;color:var(--text2);font-weight:600}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.stepper{display:flex;align-items:center;gap:6px}
+.stepper input{width:76px;text-align:center;background:var(--layer);border:1px solid var(--border);
+  border-bottom:2px solid var(--border-strong);border-radius:6px;padding:6px 4px;font-variant-numeric:tabular-nums}
+.btn{background:var(--ctrl);border:1px solid var(--border);border-bottom-color:var(--border-strong);border-radius:8px;
+  padding:8px 12px;min-height:40px;font-weight:600;cursor:pointer}
+.btn:active{background:var(--ctrl-hover)}
+.btn.sm{min-height:34px;padding:5px 10px;font-weight:500}
+.btn.accent{background:var(--accent);color:var(--accent-text);border-color:var(--accent)}
+.btn.danger{background:var(--danger-bg);color:#fff;border-color:var(--danger-bg)}
+.toggles{display:flex;flex-wrap:wrap;gap:8px}
+.chk{display:flex;align-items:center;gap:8px;background:var(--ctrl);border:1px solid var(--border);border-radius:8px;padding:6px 10px;min-height:38px}
+.chk.on{border-color:var(--accent);color:var(--accent)}
+.chk .box{width:16px;height:16px;border-radius:4px;border:1px solid var(--border-strong);display:inline-block}
+.chk.on .box{background:var(--accent);border-color:var(--accent)}
+.txrow{display:flex;align-items:center;gap:8px;padding:6px 0;border-top:1px solid var(--border)}
+.txrow:first-of-type{border-top:none}
+.txrow .n{width:26px;height:26px;border-radius:13px;border:2px solid var(--border-strong);display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--text2);flex:none}
+.txrow.next .n{border-color:var(--accent);background:var(--accent);color:#000;font-weight:700}
+.txrow .msg{flex:1;min-width:0;font-family:var(--mono);font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dx{font-size:20px;font-weight:600}
+
+/* bottom bar */
+footer{display:grid;grid-template-columns:1.2fr 1fr 1fr 1fr;gap:8px;padding:8px 10px;
+  padding-bottom:max(8px,env(safe-area-inset-bottom));background:var(--layer);border-top:1px solid var(--border)}
+footer .btn{min-height:52px;font-size:15px}
+#btnTx.on{background:var(--accent);color:#000;border-color:var(--accent)}
+#btnTune.on{background:#5a4a00;color:var(--warn);border-color:#8a7300}
+
+/* sheets & dialogs */
+.scrim{position:fixed;inset:0;background:#0009;display:flex;align-items:flex-end;justify-content:center;z-index:10}
+.sheet{width:100%;max-width:520px;background:var(--card);border:1px solid var(--border);border-radius:14px 14px 0 0;
+  padding:14px 14px max(14px,env(safe-area-inset-bottom))}
+.sheet .title{font-family:var(--mono);font-size:13px;color:var(--text2);margin-bottom:12px;white-space:pre-wrap;word-break:break-all}
+.sheet .btn{width:100%;margin-top:8px;min-height:48px}
+.center{align-items:center}
+.dialog{max-width:360px;width:calc(100% - 32px);border-radius:14px;padding:20px}
+.dialog h2{margin:0 0 6px;font-size:20px}
+#pin{width:100%;font-size:24px;letter-spacing:6px;text-align:center;margin:14px 0 6px;background:var(--layer);
+  border:1px solid var(--border);border-bottom:2px solid var(--accent);border-radius:8px;padding:10px}
+.err{color:var(--danger);min-height:20px;font-size:13px}
+#conn{position:fixed;left:50%;transform:translateX(-50%);top:max(8px,env(safe-area-inset-top));background:var(--danger-bg);
+  color:#fff;padding:6px 14px;border-radius:999px;font-size:13px;z-index:20}
+
+/* tablets / desktop: both decode panes side by side, Tx panel on the right */
+@media (min-width: 900px){
+  nav{display:none}
+  main{gap:6px;padding:0 6px}
+  .pane{display:block!important;border:1px solid var(--border);border-radius:10px;margin:6px 0;background:var(--layer)}
+  .ptitle{display:block}
+  #txPanel{flex:0 0 380px;background:transparent;border:none}
+  #wfWrap{height:22vh}
+}
+</style>
+</head>
+<body>
+<div id="app" class="hidden">
+  <header>
+    <div class="row">
+      <div class="freq" id="dial">--.------</div>
+      <select id="band" aria-label="Band"></select>
+      <div class="spacer"></div>
+      <span class="pill off" id="status">--</span>
+    </div>
+    <div class="row small muted" style="margin-top:3px">
+      <span id="mode">--</span><span>·</span><span id="mycall"></span>
+      <div class="spacer"></div>
+      <span id="utc">--:--:--</span>
+    </div>
+    <div class="progress" id="prog"><div></div></div>
+  </header>
+
+  <div id="wfWrap">
+    <img id="wf" alt="">
+    <div id="wfHint">tap to set frequency</div>
+  </div>
+
+  <nav>
+    <button data-tab="p0" class="on">Band Activity</button>
+    <button data-tab="p1">Rx Frequency</button>
+    <button data-tab="txPanel">Tx</button>
+  </nav>
+
+  <main>
+    <section class="pane" id="p0"><div class="ptitle">Band Activity</div><div class="lines"></div></section>
+    <section class="pane hidden" id="p1"><div class="ptitle">Rx Frequency</div><div class="lines"></div></section>
+    <section class="pane hidden" id="txPanel">
+      <div class="card">
+        <div class="row">
+          <div><div class="small muted">DX Call</div><div class="dx" id="dxCall">—</div></div>
+          <div class="spacer"></div>
+          <div style="text-align:right"><div class="small muted">Grid</div><div class="dx" id="dxGrid">—</div></div>
+        </div>
+      </div>
+      <div class="card">
+        <h3>Messages · tap number = send next, Now = send this one</h3>
+        <div id="txList"></div>
+      </div>
+      <div class="card grid2">
+        <div><div class="small muted">Tx Hz</div>
+          <div class="stepper"><button class="btn sm" data-step="txFreq:-10">−</button><input id="txFreq" inputmode="numeric"><button class="btn sm" data-step="txFreq:10">+</button></div></div>
+        <div><div class="small muted">Rx Hz</div>
+          <div class="stepper"><button class="btn sm" data-step="rxFreq:-10">−</button><input id="rxFreq" inputmode="numeric"><button class="btn sm" data-step="rxFreq:10">+</button></div></div>
+      </div>
+      <div class="card">
+        <div class="toggles">
+          <div class="chk" data-flag="monitor"><span class="box"></span>Monitor</div>
+          <div class="chk" data-flag="holdTx"><span class="box"></span>Hold Tx Freq</div>
+          <div class="chk" data-flag="autoSeq"><span class="box"></span>Auto Seq</div>
+          <div class="chk" data-flag="txFirst"><span class="box"></span>Tx even/1st</div>
+        </div>
+      </div>
+      <div class="small muted" id="clients" style="text-align:center"></div>
+    </section>
+  </main>
+
+  <footer>
+    <button class="btn" id="btnTx">Enable Tx</button>
+    <button class="btn danger" id="btnHalt">Halt Tx</button>
+    <button class="btn" id="btnCq">CQ</button>
+    <button class="btn" id="btnTune">Tune</button>
+  </footer>
+</div>
+
+<!-- PIN login -->
+<div class="scrim center" id="login">
+  <div class="sheet dialog">
+    <h2>WSJT-X Remote</h2>
+    <div class="muted small">Enter the PIN set in WSJT-X under Settings → Advanced → Web Remote.</div>
+    <input id="pin" type="password" inputmode="numeric" autocomplete="current-password" maxlength="32">
+    <div class="err" id="pinErr"></div>
+    <button class="btn accent" id="pinGo" style="width:100%">Connect</button>
+  </div>
+</div>
+
+<div id="sheetHost"></div>
+<div id="conn" class="hidden">Reconnecting…</div>
+
+<script>
+"use strict";
+const $ = s => document.querySelector(s);
+let PIN = localStorage.getItem("wsjtxPin") || "";
+let S = {};                 // latest state from WSJT-X
+let clockOffset = 0;        // server UTC - local clock (ms)
+let es = null;
+
+/* ---------- login ---------- */
+async function tryPin(pin){
+  try{
+    const r = await fetch("/api/check?pin=" + encodeURIComponent(pin), {cache:"no-store"});
+    if (r.status === 200) return "ok";
+    if (r.status === 429) return "Too many wrong PINs. Wait a minute and try again.";
+    return "Wrong PIN";
+  }catch(e){ return "Can't reach WSJT-X. Is it running with Web Remote enabled?"; }
+}
+async function login(){
+  const pin = $("#pin").value.trim();
+  if (!pin) return;
+  $("#pinErr").textContent = "";
+  const res = await tryPin(pin);
+  if (res !== "ok"){ $("#pinErr").textContent = res; return; }
+  PIN = pin; localStorage.setItem("wsjtxPin", PIN);
+  start();
+}
+$("#pinGo").onclick = login;
+$("#pin").addEventListener("keydown", e => { if (e.key === "Enter") login(); });
+
+/* ---------- commands ---------- */
+async function send(cmd, extra){
+  const body = Object.assign({pin: PIN, cmd}, extra || {});
+  try{
+    const r = await fetch("/api/command", {method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify(body)});
+    if (r.status === 401){ logout(); }
+  }catch(e){ showConn(true); }
+}
+function logout(){
+  localStorage.removeItem("wsjtxPin"); PIN = "";
+  if (es) es.close();
+  $("#app").classList.add("hidden"); $("#login").classList.remove("hidden");
+  $("#pinErr").textContent = "PIN changed or not accepted";
+}
+
+/* ---------- event stream ---------- */
+function showConn(on){ $("#conn").classList.toggle("hidden", !on); }
+function start(){
+  $("#login").classList.add("hidden"); $("#app").classList.remove("hidden");
+  if (es) es.close();
+  es = new EventSource("/events?pin=" + encodeURIComponent(PIN));
+  es.addEventListener("init", ev => {
+    showConn(false);
+    const d = JSON.parse(ev.data);
+    for (const p of [0,1]){ const box = paneLines(p); box.innerHTML = ""; }
+    (d.pane0||[]).forEach(addLine); (d.pane1||[]).forEach(addLine);
+    for (const p of [0,1]) scrollBottom(p, true);
+    applyState(d.state);
+  });
+  es.addEventListener("state", ev => applyState(JSON.parse(ev.data)));
+  es.addEventListener("decode", ev => addLine(JSON.parse(ev.data), true));
+  es.addEventListener("clear", ev => { paneLines(JSON.parse(ev.data).pane).innerHTML = ""; });
+  es.onerror = async () => {
+    showConn(true);
+    // a wrong PIN looks like a stream error too, check it
+    const res = await tryPin(PIN);
+    if (res === "Wrong PIN") logout();
+  };
+}
+
+/* ---------- decodes ---------- */
+const paneLines = p => document.querySelector("#p" + p + " .lines");
+function nearBottom(el){ return el.scrollHeight - el.scrollTop - el.clientHeight < 60; }
+function scrollBottom(p, force){
+  const el = $("#p" + p);
+  if (force || el.dataset.stick !== "0") el.scrollTop = el.scrollHeight;
+}
+for (const p of [0,1]){
+  const el = $("#p" + p);
+  el.addEventListener("scroll", () => { el.dataset.stick = nearBottom(el) ? "1" : "0"; });
+}
+function addLine(l, live){
+  const box = paneLines(l.pane);
+  const div = document.createElement("div");
+  const sep = /^-{3,}|^\s*-{3,}/.test(l.text);
+  div.className = "line" + (sep ? " sep" : "");
+  div.textContent = l.text;
+  if (!sep){
+    if (l.bg) div.style.background = l.bg;
+    if (l.fg) div.style.color = l.fg; else if (l.bg) div.style.color = "#000";
+    div.onclick = () => callSheet(l);
+  }
+  box.appendChild(div);
+  while (box.children.length > 300) box.removeChild(box.firstChild);
+  if (live) scrollBottom(l.pane);
+}
+function callSheet(l){
+  sheet(`<div class="title">${esc(l.text)}</div>
+    <button class="btn accent" data-a="call">Call this station</button>
+    <button class="btn" data-a="cancel">Cancel</button>`, a => {
+      if (a === "call") send("call", {pane: l.pane, text: l.text});
+  });
+}
+
+/* ---------- state ---------- */
+function esc(s){ return String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+function setFlag(name, on){ document.querySelectorAll(`[data-flag="${name}"]`).forEach(e => e.classList.toggle("on", !!on)); }
+function applyState(s){
+  if (!s) return;
+  S = s;
+  if (s.utc) clockOffset = s.utc - Date.now();
+  $("#dial").textContent = s.dial || "--";
+  $("#mode").textContent = s.mode || "";
+  $("#mycall").textContent = [s.myCall, s.myGrid].filter(Boolean).join(" ");
+  // bands
+  const sel = $("#band");
+  const opts = (s.bands||[]).join("\n");
+  if (sel.dataset.opts !== opts){
+    sel.dataset.opts = opts; sel.innerHTML = "";
+    (s.bands||[]).forEach((b,i) => { const o = document.createElement("option"); o.value = i; o.textContent = b; sel.appendChild(o); });
+  }
+  // when the dial isn't on a listed frequency, show the band it's in
+  let custom = sel.querySelector("option[data-custom]");
+  if (s.bandIndex < 0){
+    if (!custom){ custom = document.createElement("option"); custom.dataset.custom = "1"; custom.value = -1; sel.prepend(custom); }
+    custom.textContent = s.band || "—";
+  } else if (custom) custom.remove();
+  if (document.activeElement !== sel) sel.value = s.bandIndex;
+  // status pill
+  const st = $("#status");
+  st.className = "pill " + (s.transmitting ? (s.tuning ? "tune" : "tx") : (s.monitoring ? "rx" : "off"));
+  st.textContent = s.transmitting ? (s.tuning ? "TUNE" : "TX") : (s.monitoring ? "RX" : "Off");
+  $("#prog").classList.toggle("tx", !!s.transmitting);
+  // buttons
+  $("#btnTx").classList.toggle("on", !!s.autoTx);
+  $("#btnTx").textContent = s.autoTx ? "Tx Enabled" : "Enable Tx";
+  $("#btnTune").classList.toggle("on", !!s.tuning);
+  ["monitor","holdTx","autoSeq","txFirst"].forEach(f => setFlag(f, s[f]));
+  // dx & frequencies
+  $("#dxCall").textContent = s.dxCall || "—";
+  $("#dxGrid").textContent = s.dxGrid || "—";
+  if (document.activeElement !== $("#txFreq")) $("#txFreq").value = s.txFreq ?? "";
+  if (document.activeElement !== $("#rxFreq")) $("#rxFreq").value = s.rxFreq ?? "";
+  // tx messages
+  const list = $("#txList");
+  const key = JSON.stringify([s.tx, s.ntx]);
+  if (list.dataset.key !== key){
+    list.dataset.key = key; list.innerHTML = "";
+    (s.tx||[]).forEach((m,i) => {
+      const n = i + 1;
+      const row = document.createElement("div");
+      row.className = "txrow" + (s.ntx === n ? " next" : "");
+      row.innerHTML = `<div class="n">${n}</div><div class="msg">${esc(m) || '<span class="muted">—</span>'}</div><button class="btn sm">Now</button>`;
+      row.querySelector(".n").onclick = () => send("selectTx", {n});
+      row.querySelector(".msg").onclick = () => send("selectTx", {n});
+      row.querySelector("button").onclick = () => send("sendTx", {n});
+      list.appendChild(row);
+    });
+  }
+  $("#clients").textContent = s.clients > 1 ? `${s.clients} remotes connected` : "";
+  // log prompt from WSJT-X
+  if (s.logPending && !logShown){ logShown = true; logSheet(s); }
+  if (!s.logPending && logShown){ logShown = false; closeSheet(); }
+}
+let logShown = false;
+function logSheet(s){
+  sheet(`<div style="font-size:18px;font-weight:600;margin-bottom:4px">Log QSO with ${esc(s.logCall || s.dxCall || "")}?</div>
+    <div class="muted small">WSJT-X is asking to log this contact.</div>
+    <button class="btn accent" data-a="log">Log QSO</button>
+    <button class="btn" data-a="skip">Don't log</button>`, a => send("logQso", {accept: a === "log"}), true);
+}
+
+/* ---------- clock & period progress ---------- */
+setInterval(() => {
+  const now = new Date(Date.now() + clockOffset);
+  $("#utc").textContent = now.toISOString().substr(11,8) + " UTC";
+  const period = S.period || 15;
+  const t = (now.getTime() / 1000) % period;
+  $("#prog > div").style.width = (100 * t / period).toFixed(1) + "%";
+}, 250);
+
+/* ---------- waterfall ---------- */
+let wfBusy = false;
+async function refreshWaterfall(){
+  if (wfBusy || document.hidden || !PIN || $("#app").classList.contains("hidden")) return;
+  wfBusy = true;
+  try{
+    const r = await fetch("/waterfall.jpg?pin=" + encodeURIComponent(PIN) + "&t=" + Date.now(), {cache:"no-store"});
+    if (r.status === 200){
+      const url = URL.createObjectURL(await r.blob());
+      const img = $("#wf"); const old = img.src;
+      img.onload = () => { if (old.startsWith("blob:")) URL.revokeObjectURL(old); };
+      img.src = url;
+    }
+  }catch(e){}
+  wfBusy = false;
+}
+setInterval(refreshWaterfall, 1000);
+$("#wfWrap").onclick = e => {
+  if (!(S.wfHi > S.wfLo)) return;
+  const r = $("#wfWrap").getBoundingClientRect();
+  const hz = Math.round(S.wfLo + (e.clientX - r.left) / r.width * (S.wfHi - S.wfLo));
+  sheet(`<div class="title">${hz} Hz</div>
+    <button class="btn" data-a="rx">Set Rx to ${hz} Hz</button>
+    <button class="btn" data-a="tx">Set Tx to ${hz} Hz</button>
+    <button class="btn accent" data-a="both">Set both</button>
+    <button class="btn" data-a="cancel">Cancel</button>`, a => {
+      if (a === "rx" || a === "both") send("rxFreq", {hz});
+      if (a === "tx" || a === "both") send("txFreq", {hz});
+  });
+};
+
+/* ---------- controls ---------- */
+$("#btnTx").onclick = () => send("enableTx", {on: !S.autoTx});
+$("#btnHalt").onclick = () => send("halt");
+$("#btnCq").onclick = () => send("cq");
+$("#btnTune").onclick = () => send("tune", {on: !S.tuning});
+$("#band").onchange = e => { const i = +e.target.value; if (i >= 0) send("band", {index: i}); };
+document.querySelectorAll("[data-flag]").forEach(el => el.onclick = () => {
+  const f = el.dataset.flag; send(f, {on: !S[f]});
+});
+document.querySelectorAll("[data-step]").forEach(el => el.onclick = () => {
+  const [what, d] = el.dataset.step.split(":");
+  send(what, {hz: (S[what] || 0) + (+d)});
+});
+for (const id of ["txFreq","rxFreq"]){
+  $("#" + id).addEventListener("change", e => { const hz = parseInt(e.target.value, 10); if (hz > 0) send(id, {hz}); e.target.blur(); });
+}
+
+/* ---------- tabs ---------- */
+document.querySelectorAll("nav button").forEach(b => b.onclick = () => {
+  document.querySelectorAll("nav button").forEach(x => x.classList.toggle("on", x === b));
+  for (const id of ["p0","p1","txPanel"]) $("#" + id).classList.toggle("hidden", id !== b.dataset.tab);
+  if (b.dataset.tab !== "txPanel") scrollBottom(b.dataset.tab === "p0" ? 0 : 1, true);
+});
+
+/* ---------- bottom sheets ---------- */
+let sheetCb = null;
+function sheet(html, cb, modal){
+  closeSheet();
+  sheetCb = cb;
+  const host = $("#sheetHost");
+  host.innerHTML = `<div class="scrim"><div class="sheet">${html}</div></div>`;
+  const scrim = host.firstChild;
+  scrim.onclick = e => {
+    const a = e.target.dataset && e.target.dataset.a;
+    if (a){ const f = sheetCb; closeSheet(); if (a !== "cancel" && f) f(a); }
+    else if (e.target === scrim && !modal) closeSheet();
+  };
+}
+function closeSheet(){ $("#sheetHost").innerHTML = ""; sheetCb = null; }
+
+/* ---------- boot ---------- */
+(async () => {
+  if (PIN && (await tryPin(PIN)) === "ok") start();
+  else { $("#login").classList.remove("hidden"); $("#pin").focus(); }
+})();
+document.addEventListener("visibilitychange", () => { if (!document.hidden) refreshWaterfall(); });
+</script>
+</body>
+</html>

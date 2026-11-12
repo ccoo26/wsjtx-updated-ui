@@ -1,5 +1,8 @@
 #include "widegraph.h"
 
+#include <QBuffer>
+#include <QImage>
+
 #include <algorithm>
 #include <QApplication>
 #include <QSettings>
@@ -259,6 +262,23 @@ void WideGraph::keyPressEvent(QKeyEvent *e)                                 //F1
         QWidget::keyPressEvent (e);
       }
   }
+}
+
+QByteArray WideGraph::plotJpeg (int quality)
+{
+  QByteArray bytes;
+  auto const image = ui->widePlot->grab ().toImage ();
+  if (image.isNull () || image.width () < 2) return bytes;
+  QBuffer buffer {&bytes};
+  buffer.open (QIODevice::WriteOnly);
+  image.save (&buffer, "JPG", quality);
+  return bytes;
+}
+
+int WideGraph::plotFreqAt (double fraction)
+{
+  auto const width = ui->widePlot->width ();
+  return qRound (ui->widePlot->FreqfromX (qRound (qBound (0.0, fraction, 1.0) * width)));
 }
 
 void WideGraph::restoreWindowGeometry ()

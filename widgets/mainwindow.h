@@ -43,6 +43,7 @@
 #include "Network/PSKReporter.hpp"
 #include "Network/Cloudlog.hpp"
 #include "Network/QrzLogbook.hpp"
+#include "Network/WebRemote.hpp"
 #include "logbook/logbook.h"
 #include "astro.h"
 #include "widgets/QSYMessageCreator.h"
@@ -526,6 +527,7 @@ private:
   LogBook m_logBook;            // must be after Configuration construction
   Cloudlog m_cloudlog;
   QrzLogbook m_qrzLogbook;
+  WebRemote m_webRemote;
   WSPRBandHopping m_WSPR_band_hopping;
   bool m_WSPR_tx_next;
   MessageBox m_rigErrorMessageBox;
@@ -985,6 +987,12 @@ private:
   QSplitter * m_mainSplitter {nullptr};
   QAction * m_embedWaterfallAction {nullptr};
   void setup_main_splitter ();
+
+  // Web Remote (operate from a phone or tablet on the home network)
+  void update_web_remote ();
+  QJsonObject remote_state ();
+  void remote_command (QJsonObject const&);
+  void remote_call (int pane, QString const& text);
   void embed_waterfall (bool embed);
 
   //---------------------------------------------------- private functions

@@ -207,6 +207,7 @@
 #include "Network/LotWUsers.hpp"
 #include "Network/Cloudlog.hpp"
 #include "Network/QrzLogbook.hpp"
+#include "Network/WebRemote.hpp"
 #include "models/DecodeHighlightingModel.hpp"
 #include "logbook/logbook.h"
 #include "widgets/LazyFillComboBox.hpp"
@@ -583,6 +584,7 @@ private:
   Q_SLOT void on_pbTestCloudlog_clicked ();
   Q_SLOT void on_gbCloudlog_clicked ();
   Q_SLOT void on_pbTestQrz_clicked ();
+  void update_web_remote_url ();
   Q_SLOT void on_gbEQSL_clicked ();
   Q_SLOT void on_force_DTR_combo_box_currentIndexChanged (int);
   Q_SLOT void on_force_RTS_combo_box_currentIndexChanged (int);
@@ -854,6 +856,8 @@ private:
   QString cloudLogApiUrl_;
   QString cloudLogApiKey_;
   QString qrzApiKey_;
+  QString webRemotePin_;
+  quint16 webRemotePort_;
   QString voicesPath_;
   bool send_to_eqsl_;
   QString eqsl_username_;
@@ -935,6 +939,7 @@ private:
   bool twoDays_;
   bool bCloudLog_;
   bool bQrzLogbook_;
+  bool bWebRemote_;
   int  SelectedActivity_;
   bool x2ToneSpacing_;
   bool x4ToneSpacing_;
@@ -1066,6 +1071,9 @@ QString Configuration::cloudlog_api_key () const {return m_->cloudLogApiKey_;}
 qint32 Configuration::cloudlog_api_station_id () const {return m_->cloudLogStationID_;}
 bool Configuration::qrz_logbook_enabled () const {return m_->bQrzLogbook_ && !m_->qrzApiKey_.trimmed ().isEmpty ();}
 QString Configuration::qrz_api_key () const {return m_->qrzApiKey_.trimmed ();}
+bool Configuration::web_remote_enabled () const {return m_->bWebRemote_ && m_->webRemotePin_.trimmed ().size () >= 4;}
+quint16 Configuration::web_remote_port () const {return m_->webRemotePort_;}
+QString Configuration::web_remote_pin () const {return m_->webRemotePin_.trimmed ();}
 bool Configuration::prompt_to_log () const {return m_->prompt_to_log_;}
 bool Configuration::autoLog() const {return m_->autoLog_;}
 bool Configuration::contestingOnly() const {return m_->contestingOnly_;}
@@ -1901,6 +1909,11 @@ Configuration::impl::impl (Configuration * self, QNetworkAccessManager * network
 
   lotw_users_.set_local_file_path (writeable_data_dir_.absoluteFilePath ("lotw-user-activity.csv"));
 
+  // Web Remote: show the address to open on a phone as settings change
+  connect (ui_->sbWebRemotePort, static_cast<void (QSpinBox::*) (int)> (&QSpinBox::valueChanged), [this] (int) {update_web_remote_url ();});
+  connect (ui_->leWebRemotePin, &QLineEdit::textChanged, [this] (QString const&) {update_web_remote_url ();});
+  connect (ui_->gbWebRemote, &QGroupBox::toggled, [this] (bool) {update_web_remote_url ();});
+
   // set up QRZ Logbook API key test button
   connect (&qrz_test_, &QrzLogbook::keyTestResult, [this] (bool ok, QString const& detail) {
       ui_->labQrzStatus->setStyleSheet (ok ? "QLabel {color: #6CCB5F;}" : "QLabel {color: #FF6B6B;}");
@@ -2229,6 +2242,10 @@ void Configuration::impl::initialize_models ()
   ui_->gbQrzLogbook->setChecked (bQrzLogbook_);
   ui_->leQrzApiKey->setText (qrzApiKey_);
   ui_->labQrzStatus->clear ();
+  ui_->gbWebRemote->setChecked (bWebRemote_);
+  ui_->leWebRemotePin->setText (webRemotePin_);
+  ui_->sbWebRemotePort->setValue (webRemotePort_);
+  update_web_remote_url ();
   ui_->sbCloudlogStationID->setValue (cloudLogStationID_);
   ui_->special_op_activity_button_group->button (SelectedActivity_)->setChecked (true);
   ui_->cbx2ToneSpacing->setChecked(x2ToneSpacing_);
@@ -2672,6 +2689,9 @@ void Configuration::impl::read_settings ()
   cloudLogApiKey_ = settings_->value ("CloudLogApiKey", QString {}).toString ();
   bQrzLogbook_ = settings_->value ("QrzLogbookUpload", false).toBool ();
   qrzApiKey_ = settings_->value ("QrzLogbookApiKey", QString {}).toString ();
+  bWebRemote_ = settings_->value ("WebRemoteEnabled", false).toBool ();
+  webRemotePin_ = settings_->value ("WebRemotePin", QString {}).toString ();
+  webRemotePort_ = settings_->value ("WebRemotePort", 8080).toUInt ();
   cloudLogStationID_ = settings_->value("CloudLogStationID",1).toInt ();
   SelectedActivity_ = settings_->value("SelectedActivity",1).toInt ();
   x2ToneSpacing_ = settings_->value("x2ToneSpacing",false).toBool ();
@@ -2947,6 +2967,9 @@ void Configuration::impl::write_settings ()
   settings_->setValue ("CloudLogApiKey", cloudLogApiKey_);
   settings_->setValue ("QrzLogbookUpload", bQrzLogbook_);
   settings_->setValue ("QrzLogbookApiKey", qrzApiKey_);
+  settings_->setValue ("WebRemoteEnabled", bWebRemote_);
+  settings_->setValue ("WebRemotePin", webRemotePin_);
+  settings_->setValue ("WebRemotePort", webRemotePort_);
   settings_->setValue ("CloudLogStationID", cloudLogStationID_);
   settings_->setValue ("x2ToneSpacing", x2ToneSpacing_);
   settings_->setValue ("x4ToneSpacing", x4ToneSpacing_);
@@ -3538,6 +3561,9 @@ void Configuration::impl::accept ()
   cloudLogApiKey_ = ui_->leCloudlogApiKey->text ();
   bQrzLogbook_ = ui_->gbQrzLogbook->isChecked ();
   qrzApiKey_ = ui_->leQrzApiKey->text ().trimmed ();
+  bWebRemote_ = ui_->gbWebRemote->isChecked ();
+  webRemotePin_ = ui_->leWebRemotePin->text ().trimmed ();
+  webRemotePort_ = ui_->sbWebRemotePort->value ();
   cloudLogStationID_ = ui_->sbCloudlogStationID->value ();
   SelectedActivity_ = ui_->special_op_activity_button_group->checkedId();
   x2ToneSpacing_ = ui_->cbx2ToneSpacing->isChecked ();
@@ -4105,6 +4131,24 @@ void Configuration::impl::on_pbTestCloudlog_clicked ()
 {
   //fprintf(stderr, "API URL: %s\n", ui_->leCloudlogApiUrl->text().toStdString().c_str());
   cloudlog_.testApi(ui_->leCloudlogApiUrl->text(), ui_->leCloudlogApiKey->text());
+}
+
+void Configuration::impl::update_web_remote_url ()
+{
+  if (!ui_->gbWebRemote->isChecked ())
+    {
+      ui_->labWebRemoteUrl->clear ();
+      return;
+    }
+  if (ui_->leWebRemotePin->text ().trimmed ().size () < 4)
+    {
+      ui_->labWebRemoteUrl->setText (tr ("Set a PIN of at least 4 characters to turn the remote on."));
+      return;
+    }
+  auto const urls = WebRemote::localUrls (ui_->sbWebRemotePort->value ());
+  ui_->labWebRemoteUrl->setText (urls.isEmpty ()
+                                 ? tr ("No network connection found on this computer.")
+                                 : tr ("On your phone or tablet open: %1").arg (urls.join (tr ("  or  "))));
 }
 
 void Configuration::impl::on_pbTestQrz_clicked ()
