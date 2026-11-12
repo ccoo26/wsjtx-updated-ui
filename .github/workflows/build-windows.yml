@@ -45,29 +45,31 @@ jobs:
 
       - uses: msys2/setup-msys2@v2
         with:
-          msystem: MINGW64
+          # MINGW64 is being retired by MSYS2 and packages are disappearing
+          # from it (e.g. libusb); UCRT64 is the supported replacement.
+          msystem: UCRT64
           update: true
           cache: true
           install: >-
             git make tar
-            mingw-w64-x86_64-gcc
-            mingw-w64-x86_64-gcc-fortran
-            mingw-w64-x86_64-cmake
-            mingw-w64-x86_64-qt5-base
-            mingw-w64-x86_64-qt5-multimedia
-            mingw-w64-x86_64-qt5-serialport
-            mingw-w64-x86_64-qt5-svg
-            mingw-w64-x86_64-qt5-tools
-            mingw-w64-x86_64-qt5-websockets
-            mingw-w64-x86_64-qt5-activeqt
-            mingw-w64-x86_64-fftw
-            mingw-w64-x86_64-boost
-            mingw-w64-x86_64-libusb
-            mingw-w64-x86_64-portaudio
-            mingw-w64-x86_64-pkg-config
-            mingw-w64-x86_64-nsis
-            mingw-w64-x86_64-osslsigncode
-            mingw-w64-x86_64-ruby
+            mingw-w64-ucrt-x86_64-gcc
+            mingw-w64-ucrt-x86_64-gcc-fortran
+            mingw-w64-ucrt-x86_64-cmake
+            mingw-w64-ucrt-x86_64-qt5-base
+            mingw-w64-ucrt-x86_64-qt5-multimedia
+            mingw-w64-ucrt-x86_64-qt5-serialport
+            mingw-w64-ucrt-x86_64-qt5-svg
+            mingw-w64-ucrt-x86_64-qt5-tools
+            mingw-w64-ucrt-x86_64-qt5-websockets
+            mingw-w64-ucrt-x86_64-qt5-activeqt
+            mingw-w64-ucrt-x86_64-fftw
+            mingw-w64-ucrt-x86_64-boost
+            mingw-w64-ucrt-x86_64-libusb
+            mingw-w64-ucrt-x86_64-portaudio
+            mingw-w64-ucrt-x86_64-pkg-config
+            mingw-w64-ucrt-x86_64-nsis
+            mingw-w64-ucrt-x86_64-osslsigncode
+            mingw-w64-ucrt-x86_64-ruby
             autoconf automake libtool
 
       # asciidoctor is a Ruby gem (no native MSYS2 package) — needed by
@@ -161,7 +163,7 @@ jobs:
 
       - name: Fix dumpcpp name (MSYS2 ships dumpcpp-qt5, CMake expects dumpcpp)
         run: |
-          ln -sf /mingw64/bin/dumpcpp-qt5.exe /mingw64/bin/dumpcpp.exe
+          ln -sf "${MINGW_PREFIX}/bin/dumpcpp-qt5.exe" "${MINGW_PREFIX}/bin/dumpcpp.exe"
 
       - name: Configure
         run: |
