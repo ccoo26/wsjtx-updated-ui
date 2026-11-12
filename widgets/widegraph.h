@@ -57,6 +57,7 @@ public:
   void   setDiskUTC(int nutc);
   void   restartTotalPower();
   void	 setDarkStyle(bool b);
+  void   restoreWindowGeometry ();   // used when the waterfall is detached from the main window
 
 signals:
   void freezeDecode2(int n);

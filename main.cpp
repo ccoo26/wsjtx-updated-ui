@@ -46,6 +46,7 @@
 #include "WSJTXLogging.hpp"
 #include "MultiSettings.hpp"
 #include "widgets/mainwindow.h"
+#include "widgets/Win11Theme.hpp"
 #include "commons.h"
 #include "lib/init_random_seed.h"
 #include "Radio.hpp"
@@ -121,6 +122,7 @@ int main(int argc, char *argv[])
   auto const env = QProcessEnvironment::systemEnvironment ();
 
   ExceptionCatchingApplication a(argc, argv);
+  Win11Theme::install (&a);   // Fusion style + Windows 11 title bar handling
   try
     {
       // LOG_INfO ("+++++++++++++++++++++++++++ Resources ++++++++++++++++++++++++++++");

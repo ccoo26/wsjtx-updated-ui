@@ -132,7 +132,7 @@ void WideGraph::closeEvent (QCloseEvent * e)
 void WideGraph::saveSettings()                                           //saveSettings
 {
   SettingsGroup g {m_settings, "WideGraph"};
-  m_settings->setValue ("geometry", saveGeometry ());
+  if (isWindow ()) m_settings->setValue ("geometry", saveGeometry ());   // keep floating geometry while embedded
   m_settings->setValue ("PlotZero", ui->widePlot->plotZero());
   m_settings->setValue ("PlotGain", ui->widePlot->plotGain());
   m_settings->setValue ("Plot2dGain", ui->widePlot->plot2dGain());
@@ -248,8 +248,31 @@ void WideGraph::keyPressEvent(QKeyEvent *e)                                 //F1
     emit f11f12(n);
     break;
   default:
-    QDialog::keyPressEvent (e);
+    if (isWindow ())
+      {
+        QDialog::keyPressEvent (e);
+      }
+    else
+      {
+        // embedded in the main window: don't let Esc hide the panel,
+        // pass unhandled keys up to the main window instead
+        QWidget::keyPressEvent (e);
+      }
   }
+}
+
+void WideGraph::restoreWindowGeometry ()
+{
+  SettingsGroup g {m_settings, "WideGraph"};
+  auto const geometry = m_settings->value ("geometry").toByteArray ();
+  if (geometry.size ())
+    {
+      restoreGeometry (geometry);
+    }
+  else
+    {
+      resize (1000, 400);
+    }
 }
 
 void WideGraph::setRxFreq(int n)                                           //setRxFreq

@@ -340,6 +340,7 @@ set (wsjtx_CXXSRCS
   widgets/colorhighlighting.cpp
   WSPR/WsprTxScheduler.cpp
   widgets/mainwindow.cpp
+  widgets/Win11Theme.cpp
   Configuration.cpp
   main.cpp
   Network/wsprnet.cpp
@@ -1594,6 +1595,7 @@ qt5_wrap_ui (wsjtx_GENUISRCS ${wsjtx_UISRCS})
 qt5_add_resources (wsjtx_RESOURCES_RCC
   ${CMAKE_BINARY_DIR}/wsjtx.qrc
   contrib/QDarkStyleSheet/qdarkstyle/style.qrc
+  widgets/win11/win11.qrc
   )
 
 # AX COM servers

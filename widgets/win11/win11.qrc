@@ -1,0 +1,16 @@
+<!DOCTYPE RCC><RCC version="1.0">
+<qresource prefix="win11">
+  <file>check_dark.png</file>
+  <file>check_dark@2x.png</file>
+  <file>check_light.png</file>
+  <file>check_light@2x.png</file>
+  <file>up_dark.png</file>
+  <file>up_dark@2x.png</file>
+  <file>down_dark.png</file>
+  <file>down_dark@2x.png</file>
+  <file>up_light.png</file>
+  <file>up_light@2x.png</file>
+  <file>down_light.png</file>
+  <file>down_light@2x.png</file>
+</qresource>
+</RCC>

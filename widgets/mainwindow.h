@@ -77,6 +77,8 @@ namespace Ui {
 class QProcessEnvironment;
 class QSharedMemory;
 class QSplashScreen;
+class QSplitter;
+class QAction;
 class QSettings;
 class QLineEdit;
 class QFont;
@@ -976,6 +978,12 @@ private:
   QVector<double> m_phaseEqCoefficients;
   bool m_block_udp_status_updates;
   bool m_useDarkStyle;
+
+  // Windows 11 layout: waterfall embedded above the decode panes
+  QSplitter * m_mainSplitter {nullptr};
+  QAction * m_embedWaterfallAction {nullptr};
+  void setup_main_splitter ();
+  void embed_waterfall (bool embed);
 
   //---------------------------------------------------- private functions
   void readSettings();

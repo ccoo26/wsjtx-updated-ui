@@ -778,7 +778,7 @@
            <property name="styleSheet">
             <string notr="true">QPushButton:checked {
     color: #000000;
-	background-color: #00ff00;
+	background-color: #6CCB5F;
     border-style: outset;
 	border-width: 1px;
 	border-radius: 5px;
@@ -4669,7 +4669,7 @@ QPushButton[state=&quot;warning&quot;] {
  background-color: orange;
 }
 QPushButton[state=&quot;ok&quot;] {
- background-color: #00ff00;
+ background-color: #6CCB5F;
 }</string>
              </property>
              <property name="text">
