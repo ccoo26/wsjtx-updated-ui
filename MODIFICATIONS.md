@@ -20,7 +20,7 @@ icon and version numbers.
 | 2026-11-11 | Windows build moved from MSYS2 MINGW64 to UCRT64; Hamlib build fix |
 | 2026-11-12 | Automatic upload of logged QSOs to the QRZ.com Logbook, with duplicate protection and offline queue |
 | 2026-11-13 | Callsign info strip: name, location, photo and QRZ page link for the DX station (QRZ.com XML, FCC data for US calls) |
-| 2026-11-13 | Renamed to KF0KYL Digi v1.0.0 with the Coordes Designs icon; settings and log are copied from WSJT-X on first run |
+| 2026-11-13 | Version 1.0.0: renamed to KF0KYL Digi with its own icon; settings and log are copied from WSJT-X on first run |
 
 The full history of every change is in the Git commit log.
 
