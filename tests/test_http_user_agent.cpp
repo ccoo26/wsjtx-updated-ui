@@ -12,7 +12,8 @@ private Q_SLOTS:
   {
     auto const user_agent = http_user_agent ();
 
-    QVERIFY (user_agent.startsWith ("WSJT-X/"));
+    QVERIFY (user_agent.startsWith ("KF0KYL-Digi/"));
+    QVERIFY (user_agent.contains ("WSJT-X/" WSJTX_BASE_VERSION));   // what it is based on
     QVERIFY (user_agent.contains (version ()));
 
     auto const build_revision = revision ();

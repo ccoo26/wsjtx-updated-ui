@@ -21,7 +21,7 @@ CAboutDlg::CAboutDlg(QWidget *parent) :
     "<b>Based on WSJT-X " WSJTX_BASE_VERSION " by Joe Taylor, K1JT, and the<br />"
     "WSJT Development Team.</b> This is a modified version and is<br />"
     "not the official WSJT-X or endorsed by its authors.<br />"
-    "Source code: <a href=\"https://github.com/ccoo26/wsjtx-updated-ui\">github.com/ccoo26/wsjtx-updated-ui</a><br /><br />"
+    "Source code: <a href=\"https://github.com/ccoo26/KF0KYL-Digi\">github.com/ccoo26/KF0KYL-Digi</a><br /><br />"
     "WSJT-X implements a number of digital modes designed for <br />"
     "weak-signal Amateur Radio communication.  <br /><br />"
     "&copy; 2001-2026 by Joe Taylor, K1JT, Bill Somerville, G4WJS, <br />"

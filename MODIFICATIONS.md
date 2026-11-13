@@ -7,7 +7,7 @@ reports about this version to KF0KYL, not to the WSJT-X support groups.
 
 Like WSJT-X, KF0KYL Digi is free software licensed under the GNU General
 Public License, version 3 (see [COPYING](COPYING)). Its complete source code
-is available at https://github.com/ccoo26/wsjtx-updated-ui. In line with the
+is available at https://github.com/ccoo26/KF0KYL-Digi. In line with the
 WSJT trademark policy ([TRADEMARK.md](TRADEMARK.md)), it uses its own name,
 icon and version numbers.
 
