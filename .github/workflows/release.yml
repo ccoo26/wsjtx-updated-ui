@@ -1,12 +1,18 @@
 name: Release
 
-# Publish a KF0KYL Digi release: push a tag like "v1.0.0" and this builds
-# Windows, Linux x86_64 and Linux ARM64 (Raspberry Pi) and creates a GitHub
-# Release with the installers and source code attached.
-#
-#   git tag v1.0.0 && git push origin v1.0.0
+# Publish a KF0KYL Digi release. Either:
+#   - on GitHub: Actions > Release > Run workflow, enter the version (1.0.0), or
+#   - push a tag:  git tag v1.0.0 && git push origin v1.0.0
+# It builds Windows, Linux x86_64 and Linux ARM64 (Raspberry Pi) and creates a
+# GitHub Release (and the vX.Y.Z tag) with the installers and source attached.
 
 on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to release, e.g. 1.0.0"
+        required: true
+        default: "1.0.0"
   push:
     tags: ["v*"]
 
@@ -18,9 +24,14 @@ jobs:
     steps:
       - id: v
         run: |
-          VERSION="${GITHUB_REF_NAME#v}"
+          if [ "$GITHUB_EVENT_NAME" = "workflow_dispatch" ]; then
+            VERSION="${{ inputs.version }}"
+          else
+            VERSION="${GITHUB_REF_NAME#v}"
+          fi
+          VERSION="${VERSION#v}"
           if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            echo "::error::Release tags look like v1.2.3 (got $GITHUB_REF_NAME)"
+            echo "::error::Versions look like 1.2.3 (got $VERSION)"
             exit 1
           fi
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
@@ -77,7 +88,7 @@ jobs:
           shopt -s nullglob
           mkdir -p release
           git archive --format=tar.gz --prefix="kf0kyldigi-${VERSION}/" \
-            -o "release/kf0kyldigi-${VERSION}-source.tar.gz" "${GITHUB_REF_NAME}"
+            -o "release/kf0kyldigi-${VERSION}-source.tar.gz" "${GITHUB_SHA}"
           for f in artifacts/kf0kyldigi-${VERSION}-windows-x86_64-installer/*.exe \
                    artifacts/kf0kyldigi-${VERSION}-linux-*-deb/*.deb \
                    artifacts/kf0kyldigi-${VERSION}-linux-*-AppImage/*.AppImage; do
@@ -108,6 +119,7 @@ jobs:
 
           KF0KYL Digi is a modified version of WSJT-X and is not endorsed by the WSJT Development Team. Free software under the GNU GPL v3; source code included below.
           NOTES
-          gh release create "${GITHUB_REF_NAME}" release/* \
+          gh release create "v${VERSION}" release/* \
+            --target "${GITHUB_SHA}" \
             --title "KF0KYL Digi ${VERSION}" \
             --notes-file notes.md
