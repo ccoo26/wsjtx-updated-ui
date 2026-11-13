@@ -149,7 +149,6 @@ namespace
 void DisplayText::insertText(QString const& text, QColor bg, QColor fg
                              , QString const& call1, QString const& call2, QTextCursor::MoveOperation location)
 {
-  Q_EMIT lineInserted (text, bg, fg);
   auto cursor = textCursor ();
   cursor.movePosition (location);
   auto block_format = cursor.blockFormat ();

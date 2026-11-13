@@ -46,10 +46,6 @@
 #include <QToolTip>
 #include <QAction>
 #include <QSplitter>
-#include <QAbstractButton>
-#include <QRadioButton>
-#include <QJsonArray>
-#include <QJsonObject>
 #include <QDesktopWidget>
 #include <QBoxLayout>
 #include <QSignalBlocker>
@@ -577,21 +573,6 @@ MainWindow::MainWindow(QDir const& temp_directory, bool multiple,
     });
   m_qrzLogbook.setPendingFile (m_config.writeable_data_dir ().absoluteFilePath ("qrz_pending.adi"));
   m_qrzLogbook.setApiKey (m_config.qrz_logbook_enabled () ? m_config.qrz_api_key () : QString {});
-
-  // Web Remote: mirror decodes and state to browsers on the home network
-  m_webRemote.setStateProvider ([this] {return remote_state ();});
-  m_webRemote.setWaterfallProvider ([this] {return m_wideGraph->plotJpeg ();});
-  connect (&m_webRemote, &WebRemote::command, this, &MainWindow::remote_command);
-  {
-    auto colour = [] (QColor const& c) {return c.isValid () ? c.name () : QString {};};
-    connect (ui->decodedTextBrowser, &DisplayText::lineInserted, this,
-             [this, colour] (QString const& t, QColor const& bg, QColor const& fg) {m_webRemote.addLine (0, t, colour (bg), colour (fg));});
-    connect (ui->decodedTextBrowser2, &DisplayText::lineInserted, this,
-             [this, colour] (QString const& t, QColor const& bg, QColor const& fg) {m_webRemote.addLine (1, t, colour (bg), colour (fg));});
-    connect (ui->decodedTextBrowser, &DisplayText::erased, this, [this] {m_webRemote.clearPane (0);});
-    connect (ui->decodedTextBrowser2, &DisplayText::erased, this, [this] {m_webRemote.clearPane (1);});
-  }
-  update_web_remote ();
   ui->dxGridEntry->setValidator (new MaidenheadLocatorValidator {this});
   ui->dxCallEntry->setValidator (new CallsignValidator {this});
   ui->sbTR->values ({5, 10, 15, 30, 60, 120, 300, 900, 1800});
@@ -3611,7 +3592,6 @@ void MainWindow::on_actionSettings_triggered()           // Setup Dialog (Settin
   if (QDialog::Accepted == m_config.exec ()) {
     checkMSK144ContestType();
     m_qrzLogbook.setApiKey (m_config.qrz_logbook_enabled () ? m_config.qrz_api_key () : QString {});
-    update_web_remote ();
     if (m_config.my_callsign () != callsign) {
       m_baseCall = Radio::base_callsign (m_config.my_callsign ());
       ui->tx1->setEnabled (elide_tx1_not_allowed () || ui->tx1->isEnabled ());
@@ -4698,200 +4678,6 @@ void MainWindow::on_actionWide_Waterfall_triggered()      //Display Waterfalls
       m_wideGraph->raise ();
       m_wideGraph->activateWindow ();
     }
-}
-
-void MainWindow::update_web_remote ()
-{
-  if (!m_config.web_remote_enabled ())
-    {
-      m_webRemote.stop ();
-      return;
-    }
-  bool const was_listening = m_webRemote.isListening ();
-  if (m_webRemote.start (m_config.web_remote_port (), m_config.web_remote_pin ()))
-    {
-      if (!was_listening)
-        {
-          auto const urls = WebRemote::localUrls (m_config.web_remote_port ());
-          statusBar ()->showMessage (tr ("Web Remote ready: open %1 on your phone or tablet")
-                                     .arg (urls.value (0, QString {"http://<this computer>:%1"}.arg (m_config.web_remote_port ()))), 15000);
-        }
-    }
-  else
-    {
-      statusBar ()->showMessage (tr ("Web Remote could not start on port %1: %2")
-                                 .arg (m_config.web_remote_port ()).arg (m_webRemote.errorString ()), 30000);
-    }
-}
-
-QJsonObject MainWindow::remote_state ()
-{
-  QJsonObject s;
-  s["myCall"] = m_config.my_callsign ();
-  s["myGrid"] = m_config.my_grid ();
-  s["mode"] = m_mode;
-  s["dial"] = ui->labDialFreq->text ();
-  // "20m · 14.074" labels for the band picker, same entries as the band combo box
-  QJsonArray bands;
-  int band_index {-1};
-  auto const& frequencies = m_config.frequencies ();
-  for (int i = 0; i < ui->bandComboBox->count (); ++i)
-    {
-      auto const source_index = frequencies->mapToSource (frequencies->index (i, FrequencyList_v2_101::frequency_column));
-      if (!source_index.isValid ())
-        {
-          bands.append (ui->bandComboBox->itemText (i));
-          continue;
-        }
-      auto const f = frequencies->frequency_list ()[source_index.row ()].frequency_;
-      bands.append (QString {"%1 · %2"}.arg (m_config.bands ()->find (f), Radio::pretty_frequency_MHz_string (f)));
-      if (f == m_freqNominal) band_index = i;
-    }
-  s["bands"] = bands;
-  s["bandIndex"] = band_index;
-  s["band"] = m_config.bands ()->find (m_freqNominal);
-  s["txFreq"] = ui->TxFreqSpinBox->value ();
-  s["rxFreq"] = ui->RxFreqSpinBox->value ();
-  s["dxCall"] = ui->dxCallEntry->text ();
-  s["dxGrid"] = ui->dxGridEntry->text ();
-  s["autoTx"] = m_auto;
-  s["transmitting"] = m_transmitting;
-  s["tuning"] = m_tune;
-  s["monitoring"] = m_monitoring;
-  s["holdTx"] = ui->cbHoldTxFreq->isChecked ();
-  s["autoSeq"] = ui->cbAutoSeq->isChecked ();
-  s["txFirst"] = ui->txFirstCheckBox->isChecked ();
-  QRadioButton * const radios[] {ui->txrb1, ui->txrb2, ui->txrb3, ui->txrb4, ui->txrb5, ui->txrb6};
-  int next {0};
-  for (int i = 0; i < 6; ++i) if (radios[i]->isChecked ()) next = i + 1;
-  s["ntx"] = next;
-  s["tx"] = QJsonArray {ui->tx1->text (), ui->tx2->text (), ui->tx3->text (), ui->tx4->text (),
-                        ui->tx5->currentText (), ui->tx6->text ()};
-  s["period"] = m_TRperiod;
-  s["logPending"] = m_logDlg->isVisible ();
-  s["logCall"] = ui->dxCallEntry->text ();
-  s["wfLo"] = m_wideGraph->plotFreqAt (0.0);
-  s["wfHi"] = m_wideGraph->plotFreqAt (1.0);
-  s["utc"] = static_cast<double> (QDateTime::currentMSecsSinceEpoch ());
-  return s;
-}
-
-void MainWindow::remote_call (int pane, QString const& text)
-{
-  // find the line in the decode pane and replay a real double-click on it,
-  // so every rule WSJT-X applies to double-clicks still applies
-  auto * browser = pane == 0 ? ui->decodedTextBrowser : ui->decodedTextBrowser2;
-  auto const wanted = text.trimmed ();
-  for (auto block = browser->document ()->lastBlock (); block.isValid (); block = block.previous ())
-    {
-      if (block.text ().trimmed () == wanted)
-        {
-          QTextCursor cursor {block};
-          browser->setTextCursor (cursor);
-          if (pane == 0)
-            {
-              doubleClickOnCall2 (Qt::NoModifier);   // left pane, see doubleClickOnCall2
-            }
-          else
-            {
-              doubleClickOnCall (Qt::NoModifier);
-            }
-          return;
-        }
-    }
-  statusBar ()->showMessage (tr ("Web Remote: that decode is no longer on screen"), 5000);
-}
-
-void MainWindow::remote_command (QJsonObject const& c)
-{
-  auto const cmd = c.value ("cmd").toString ();
-  bool const on = c.value ("on").toBool ();
-  int const hz = c.value ("hz").toInt ();
-  auto set_checked = [] (QAbstractButton * button, bool want) {
-    if (button->isEnabled () && button->isChecked () != want) button->click ();
-  };
-  QAbstractButton * const tx_buttons[] {ui->txb1, ui->txb2, ui->txb3, ui->txb4, ui->txb5, ui->txb6};
-  QAbstractButton * const tx_radios[] {ui->txrb1, ui->txrb2, ui->txrb3, ui->txrb4, ui->txrb5, ui->txrb6};
-  int const n = c.value ("n").toInt ();
-
-  if (cmd == "call")
-    {
-      remote_call (c.value ("pane").toInt (), c.value ("text").toString ());
-    }
-  else if (cmd == "enableTx")
-    {
-      set_checked (ui->autoButton, on);
-    }
-  else if (cmd == "halt")
-    {
-      ui->stopTxButton->click ();
-    }
-  else if (cmd == "tune")
-    {
-      set_checked (ui->tuneButton, on);
-    }
-  else if (cmd == "monitor")
-    {
-      set_checked (ui->monitorButton, on);
-    }
-  else if (cmd == "holdTx")
-    {
-      set_checked (ui->cbHoldTxFreq, on);
-    }
-  else if (cmd == "autoSeq")
-    {
-      set_checked (ui->cbAutoSeq, on);
-    }
-  else if (cmd == "txFirst")
-    {
-      set_checked (ui->txFirstCheckBox, on);
-    }
-  else if (cmd == "selectTx" && n >= 1 && n <= 6)
-    {
-      if (tx_radios[n - 1]->isEnabled ()) tx_radios[n - 1]->click ();
-    }
-  else if (cmd == "sendTx" && n >= 1 && n <= 6)
-    {
-      if (tx_buttons[n - 1]->isEnabled ()) tx_buttons[n - 1]->click ();
-    }
-  else if (cmd == "cq")
-    {
-      // same as clicking Tx 6 and then Enable Tx
-      if (ui->txb6->isEnabled ()) ui->txb6->click ();
-      set_checked (ui->autoButton, true);
-    }
-  else if (cmd == "txFreq" && hz > 0)
-    {
-      ui->TxFreqSpinBox->setValue (hz);
-    }
-  else if (cmd == "rxFreq" && hz > 0)
-    {
-      ui->RxFreqSpinBox->setValue (hz);
-    }
-  else if (cmd == "band")
-    {
-      int const index = c.value ("index").toInt (-1);
-      if (index >= 0 && index < ui->bandComboBox->count () && index != ui->bandComboBox->currentIndex ())
-        {
-          ui->bandComboBox->setCurrentIndex (index);
-          on_bandComboBox_activated (index);
-        }
-    }
-  else if (cmd == "logQso")
-    {
-      if (m_logDlg->isVisible ())
-        {
-          if (c.value ("accept").toBool ())
-            {
-              m_logDlg->accept ();
-            }
-          else
-            {
-              m_logDlg->reject ();
-            }
-        }
-    }
-  m_webRemote.stateChanged ();
 }
 
 void MainWindow::setup_main_splitter ()

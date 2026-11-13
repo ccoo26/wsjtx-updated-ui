@@ -103,10 +103,6 @@ signals:
   void freezeDecode1(int n);
   void setFreq1(int rxFreq, int txFreq);
 
-public:
-  int XfromFreq(float f);
-  float FreqfromX(int x);
-
 protected:
   //re-implemented widget event handlers
   void paintEvent(QPaintEvent *event) override;
@@ -118,6 +114,8 @@ protected:
 private:
 
   void MakeFrequencyStrs();
+  int XfromFreq(float f);
+  float FreqfromX(int x);
 
   QAction * m_set_freq_action;
 

@@ -280,7 +280,6 @@ set (wsjt_qt_CXXSRCS
   Network/FoxVerifier.cpp
   Network/Cloudlog.cpp
   Network/QrzLogbook.cpp
-  Network/WebRemote.cpp
   Network/eqsl.cpp
   models/DecodeHighlightingModel.cpp
   widgets/DecodeHighlightingListView.cpp
@@ -1598,7 +1597,6 @@ qt5_add_resources (wsjtx_RESOURCES_RCC
   ${CMAKE_BINARY_DIR}/wsjtx.qrc
   contrib/QDarkStyleSheet/qdarkstyle/style.qrc
   widgets/win11/win11.qrc
-  widgets/webremote/webremote.qrc
   )
 
 # AX COM servers

@@ -182,9 +182,6 @@ public:
   QString cloudlog_api_key() const;
   qint32 cloudlog_api_station_id() const;
   bool qrz_logbook_enabled () const;
-  bool web_remote_enabled () const;
-  quint16 web_remote_port () const;
-  QString web_remote_pin () const;
   QString qrz_api_key () const;
   bool prompt_to_log () const;
   bool autoLog() const;

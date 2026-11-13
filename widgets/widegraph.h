@@ -57,9 +57,7 @@ public:
   void   setDiskUTC(int nutc);
   void   restartTotalPower();
   void	 setDarkStyle(bool b);
-  void   restoreWindowGeometry ();
-  QByteArray plotJpeg (int quality = 70);        // waterfall snapshot for the web remote
-  int    plotFreqAt (double fraction);           // audio Hz at a fraction of the plot width   // used when the waterfall is detached from the main window
+  void   restoreWindowGeometry ();   // used when the waterfall is detached from the main window
 
 signals:
   void freezeDecode2(int n);
