@@ -43,6 +43,7 @@
 #include "Network/PSKReporter.hpp"
 #include "Network/Cloudlog.hpp"
 #include "Network/QrzLogbook.hpp"
+#include "Network/CallsignLookup.hpp"
 #include "logbook/logbook.h"
 #include "astro.h"
 #include "widgets/QSYMessageCreator.h"
@@ -79,6 +80,7 @@ class QProcessEnvironment;
 class QSharedMemory;
 class QSplashScreen;
 class QSplitter;
+class CallsignInfo;
 class QAction;
 class QSettings;
 class QLineEdit;
@@ -526,6 +528,7 @@ private:
   LogBook m_logBook;            // must be after Configuration construction
   Cloudlog m_cloudlog;
   QrzLogbook m_qrzLogbook;
+  CallsignLookup m_callLookup;
   WSPRBandHopping m_WSPR_band_hopping;
   bool m_WSPR_tx_next;
   MessageBox m_rigErrorMessageBox;
@@ -985,6 +988,13 @@ private:
   QSplitter * m_mainSplitter {nullptr};
   QAction * m_embedWaterfallAction {nullptr};
   void setup_main_splitter ();
+
+  // callsign info strip: who is the current DX station
+  CallsignInfo * m_callInfo {nullptr};
+  QAction * m_callInfoAction {nullptr};
+  QTimer * m_callInfoTimer {nullptr};
+  void setup_callsign_info ();
+  void update_callsign_info ();
   void embed_waterfall (bool embed);
 
   //---------------------------------------------------- private functions

@@ -280,6 +280,7 @@ set (wsjt_qt_CXXSRCS
   Network/FoxVerifier.cpp
   Network/Cloudlog.cpp
   Network/QrzLogbook.cpp
+  Network/CallsignLookup.cpp
   Network/eqsl.cpp
   models/DecodeHighlightingModel.cpp
   widgets/DecodeHighlightingListView.cpp
@@ -342,6 +343,7 @@ set (wsjtx_CXXSRCS
   WSPR/WsprTxScheduler.cpp
   widgets/mainwindow.cpp
   widgets/Win11Theme.cpp
+  widgets/CallsignInfo.cpp
   Configuration.cpp
   main.cpp
   Network/wsprnet.cpp

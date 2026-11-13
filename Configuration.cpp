@@ -207,6 +207,7 @@
 #include "Network/LotWUsers.hpp"
 #include "Network/Cloudlog.hpp"
 #include "Network/QrzLogbook.hpp"
+#include "Network/CallsignLookup.hpp"
 #include "models/DecodeHighlightingModel.hpp"
 #include "logbook/logbook.h"
 #include "widgets/LazyFillComboBox.hpp"
@@ -583,6 +584,7 @@ private:
   Q_SLOT void on_pbTestCloudlog_clicked ();
   Q_SLOT void on_gbCloudlog_clicked ();
   Q_SLOT void on_pbTestQrz_clicked ();
+  Q_SLOT void on_pbTestQrzLogin_clicked ();
   Q_SLOT void on_gbEQSL_clicked ();
   Q_SLOT void on_force_DTR_combo_box_currentIndexChanged (int);
   Q_SLOT void on_force_RTS_combo_box_currentIndexChanged (int);
@@ -739,6 +741,7 @@ private:
   LotWUsers lotw_users_;
   Cloudlog cloudlog_;
   QrzLogbook qrz_test_;
+  CallsignLookup qrz_login_test_;
 
   bool restart_sound_input_device_;
   bool restart_sound_output_device_;
@@ -854,6 +857,8 @@ private:
   QString cloudLogApiUrl_;
   QString cloudLogApiKey_;
   QString qrzApiKey_;
+  QString qrzXmlUser_;
+  QString qrzXmlPassword_;
   QString voicesPath_;
   bool send_to_eqsl_;
   QString eqsl_username_;
@@ -1066,6 +1071,8 @@ QString Configuration::cloudlog_api_key () const {return m_->cloudLogApiKey_;}
 qint32 Configuration::cloudlog_api_station_id () const {return m_->cloudLogStationID_;}
 bool Configuration::qrz_logbook_enabled () const {return m_->bQrzLogbook_ && !m_->qrzApiKey_.trimmed ().isEmpty ();}
 QString Configuration::qrz_api_key () const {return m_->qrzApiKey_.trimmed ();}
+QString Configuration::qrz_xml_username () const {return m_->qrzXmlUser_.trimmed ();}
+QString Configuration::qrz_xml_password () const {return m_->qrzXmlPassword_;}
 bool Configuration::prompt_to_log () const {return m_->prompt_to_log_;}
 bool Configuration::autoLog() const {return m_->autoLog_;}
 bool Configuration::contestingOnly() const {return m_->contestingOnly_;}
@@ -1901,6 +1908,13 @@ Configuration::impl::impl (Configuration * self, QNetworkAccessManager * network
 
   lotw_users_.set_local_file_path (writeable_data_dir_.absoluteFilePath ("lotw-user-activity.csv"));
 
+  // set up QRZ.com lookup login test button
+  connect (&qrz_login_test_, &CallsignLookup::loginResult, [this] (bool ok, QString const& detail) {
+      ui_->labQrzLoginStatus->setStyleSheet (ok ? "QLabel {color: #6CCB5F;}" : "QLabel {color: #FF6B6B;}");
+      ui_->labQrzLoginStatus->setText (detail);
+      ui_->pbTestQrzLogin->setEnabled (true);
+    });
+
   // set up QRZ Logbook API key test button
   connect (&qrz_test_, &QrzLogbook::keyTestResult, [this] (bool ok, QString const& detail) {
       ui_->labQrzStatus->setStyleSheet (ok ? "QLabel {color: #6CCB5F;}" : "QLabel {color: #FF6B6B;}");
@@ -2229,6 +2243,9 @@ void Configuration::impl::initialize_models ()
   ui_->gbQrzLogbook->setChecked (bQrzLogbook_);
   ui_->leQrzApiKey->setText (qrzApiKey_);
   ui_->labQrzStatus->clear ();
+  ui_->leQrzUser->setText (qrzXmlUser_);
+  ui_->leQrzPassword->setText (qrzXmlPassword_);
+  ui_->labQrzLoginStatus->clear ();
   ui_->sbCloudlogStationID->setValue (cloudLogStationID_);
   ui_->special_op_activity_button_group->button (SelectedActivity_)->setChecked (true);
   ui_->cbx2ToneSpacing->setChecked(x2ToneSpacing_);
@@ -2672,6 +2689,8 @@ void Configuration::impl::read_settings ()
   cloudLogApiKey_ = settings_->value ("CloudLogApiKey", QString {}).toString ();
   bQrzLogbook_ = settings_->value ("QrzLogbookUpload", false).toBool ();
   qrzApiKey_ = settings_->value ("QrzLogbookApiKey", QString {}).toString ();
+  qrzXmlUser_ = settings_->value ("QrzXmlUsername", QString {}).toString ();
+  qrzXmlPassword_ = settings_->value ("QrzXmlPassword", QString {}).toString ();
   cloudLogStationID_ = settings_->value("CloudLogStationID",1).toInt ();
   SelectedActivity_ = settings_->value("SelectedActivity",1).toInt ();
   x2ToneSpacing_ = settings_->value("x2ToneSpacing",false).toBool ();
@@ -2947,6 +2966,8 @@ void Configuration::impl::write_settings ()
   settings_->setValue ("CloudLogApiKey", cloudLogApiKey_);
   settings_->setValue ("QrzLogbookUpload", bQrzLogbook_);
   settings_->setValue ("QrzLogbookApiKey", qrzApiKey_);
+  settings_->setValue ("QrzXmlUsername", qrzXmlUser_);
+  settings_->setValue ("QrzXmlPassword", qrzXmlPassword_);
   settings_->setValue ("CloudLogStationID", cloudLogStationID_);
   settings_->setValue ("x2ToneSpacing", x2ToneSpacing_);
   settings_->setValue ("x4ToneSpacing", x4ToneSpacing_);
@@ -3538,6 +3559,8 @@ void Configuration::impl::accept ()
   cloudLogApiKey_ = ui_->leCloudlogApiKey->text ();
   bQrzLogbook_ = ui_->gbQrzLogbook->isChecked ();
   qrzApiKey_ = ui_->leQrzApiKey->text ().trimmed ();
+  qrzXmlUser_ = ui_->leQrzUser->text ().trimmed ();
+  qrzXmlPassword_ = ui_->leQrzPassword->text ();
   cloudLogStationID_ = ui_->sbCloudlogStationID->value ();
   SelectedActivity_ = ui_->special_op_activity_button_group->checkedId();
   x2ToneSpacing_ = ui_->cbx2ToneSpacing->isChecked ();
@@ -4105,6 +4128,14 @@ void Configuration::impl::on_pbTestCloudlog_clicked ()
 {
   //fprintf(stderr, "API URL: %s\n", ui_->leCloudlogApiUrl->text().toStdString().c_str());
   cloudlog_.testApi(ui_->leCloudlogApiUrl->text(), ui_->leCloudlogApiKey->text());
+}
+
+void Configuration::impl::on_pbTestQrzLogin_clicked ()
+{
+  ui_->labQrzLoginStatus->setStyleSheet ({});
+  ui_->labQrzLoginStatus->setText (tr ("Checking..."));
+  ui_->pbTestQrzLogin->setEnabled (false);
+  qrz_login_test_.testLogin (ui_->leQrzUser->text (), ui_->leQrzPassword->text ());
 }
 
 void Configuration::impl::on_pbTestQrz_clicked ()

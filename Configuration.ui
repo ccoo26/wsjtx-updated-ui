@@ -4189,7 +4189,7 @@ Right click for insert and delete options.</string>
          </layout>
         </widget>
        </item>
-       <item row="5" column="0" colspan="2">
+       <item row="6" column="0" colspan="2">
         <spacer name="verticalSpacer_9">
          <property name="orientation">
           <enum>Qt::Vertical</enum>
@@ -4202,6 +4202,75 @@ Right click for insert and delete options.</string>
          </property>
         </spacer>
        </item>
+        <item row="5" column="0" colspan="2">
+         <widget class="QGroupBox" name="gbQrzLookup">
+          <property name="toolTip">
+           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Show the name, location and photo of the station you are working, looked up on QRZ.com with your QRZ.com username and password. A QRZ XML subscription gives full details; without one QRZ returns limited data. US calls are also looked up in FCC licence data, which needs no login.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          </property>
+          <property name="title">
+           <string>Callsign lookup on QRZ.com (name, location, photo)</string>
+          </property>
+          <layout class="QHBoxLayout" name="qrz_lookup_layout">
+           <item>
+            <widget class="QLabel" name="qrz_user_label">
+             <property name="text">
+              <string>Username:</string>
+             </property>
+             <property name="buddy">
+              <cstring>leQrzUser</cstring>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLineEdit" name="leQrzUser">
+             <property name="placeholderText">
+              <string>your callsign</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="qrz_password_label">
+             <property name="text">
+              <string>Password:</string>
+             </property>
+             <property name="buddy">
+              <cstring>leQrzPassword</cstring>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLineEdit" name="leQrzPassword">
+             <property name="echoMode">
+              <enum>QLineEdit::Password</enum>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="pbTestQrzLogin">
+             <property name="text">
+              <string>Test Login</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="labQrzLoginStatus">
+             <property name="minimumSize">
+              <size>
+               <width>160</width>
+               <height>0</height>
+              </size>
+             </property>
+             <property name="wordWrap">
+              <bool>true</bool>
+             </property>
+             <property name="text">
+              <string/>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
         <item row="4" column="0" colspan="2">
          <widget class="QGroupBox" name="gbQrzLogbook">
           <property name="toolTip">

@@ -1,6 +1,7 @@
 //---------------------------------------------------------- MainWindow
 #include "mainwindow.h"
 #include "Win11Theme.hpp"
+#include "CallsignInfo.hpp"
 
 #include <QAudio>
 #include <QAudioOutput>
@@ -46,6 +47,7 @@
 #include <QToolTip>
 #include <QAction>
 #include <QSplitter>
+#include <QTimer>
 #include <QDesktopWidget>
 #include <QBoxLayout>
 #include <QSignalBlocker>
@@ -566,6 +568,7 @@ MainWindow::MainWindow(QDir const& temp_directory, bool multiple,
   createStatusBar();
   add_child_to_event_filter (this);
   setup_main_splitter ();
+  setup_callsign_info ();
 
   // QRZ Logbook auto-upload: un-sent QSOs survive restarts in qrz_pending.adi
   connect (&m_qrzLogbook, &QrzLogbook::status, this, [this] (QString const& message, bool error) {
@@ -1583,6 +1586,7 @@ void MainWindow::writeSettings()
   m_settings->setValue("SplitterState",ui->decodes_splitter->saveState());
   m_settings->setValue("MainSplitterState",m_mainSplitter->saveState());
   m_settings->setValue("WaterfallEmbedded",m_embedWaterfallAction->isChecked());
+  m_settings->setValue("CallsignInfoVisible",m_callInfoAction->isChecked());
   m_settings->setValue("Blanker",ui->sbNB->value());
   m_settings->setValue("Score",m_score);
   m_settings->setValue("labDXpedText",ui->labDXped->text());
@@ -2021,6 +2025,7 @@ void MainWindow::readSettings()
       m_embedWaterfallAction->setChecked (embed);
     }
     embed_waterfall (embed);
+    m_callInfoAction->setChecked (m_settings->value ("CallsignInfoVisible", true).toBool ());
     auto const state = m_settings->value ("MainSplitterState").toByteArray ();
     if (state.size ())
       {
@@ -3592,6 +3597,8 @@ void MainWindow::on_actionSettings_triggered()           // Setup Dialog (Settin
   if (QDialog::Accepted == m_config.exec ()) {
     checkMSK144ContestType();
     m_qrzLogbook.setApiKey (m_config.qrz_logbook_enabled () ? m_config.qrz_api_key () : QString {});
+    m_callLookup.setQrzLogin (m_config.qrz_xml_username (), m_config.qrz_xml_password ());
+    update_callsign_info ();
     if (m_config.my_callsign () != callsign) {
       m_baseCall = Radio::base_callsign (m_config.my_callsign ());
       ui->tx1->setEnabled (elide_tx1_not_allowed () || ui->tx1->isEnabled ());
@@ -4678,6 +4685,54 @@ void MainWindow::on_actionWide_Waterfall_triggered()      //Display Waterfalls
       m_wideGraph->raise ();
       m_wideGraph->activateWindow ();
     }
+}
+
+void MainWindow::setup_callsign_info ()
+{
+  // strip between the decode panes and the controls showing who the
+  // DX station is; follows the DX Call box however it gets filled in
+  // (double-click, typing, or auto-sequencing answering a caller)
+  m_callInfo = new CallsignInfo {ui->centralWidget};
+  if (auto * layout = qobject_cast<QBoxLayout *> (ui->centralWidget->layout ()))
+    {
+      int const index = layout->indexOf (ui->lower_panel_widget);
+      layout->insertWidget (index < 0 ? layout->count () : index, m_callInfo);
+    }
+
+  m_callInfoAction = new QAction {tr ("Callsign Info"), this};
+  m_callInfoAction->setObjectName ("actionCallsign_Info");
+  m_callInfoAction->setCheckable (true);
+  m_callInfoAction->setChecked (true);
+  m_callInfoAction->setToolTip (tr ("Show name, location and photo of the DX station"));
+  ui->menuView->insertAction (m_embedWaterfallAction, m_callInfoAction);
+  connect (m_callInfoAction, &QAction::toggled, this, [this] (bool) {update_callsign_info ();});
+
+  m_callInfoTimer = new QTimer {this};
+  m_callInfoTimer->setSingleShot (true);
+  m_callInfoTimer->setInterval (600);   // wait for typing to settle
+  connect (m_callInfoTimer, &QTimer::timeout, this, &MainWindow::update_callsign_info);
+  connect (ui->dxCallEntry, &QLineEdit::textChanged, m_callInfoTimer, static_cast<void (QTimer::*) ()> (&QTimer::start));
+
+  connect (&m_callLookup, &CallsignLookup::found, m_callInfo, &CallsignInfo::setInfo);
+  connect (&m_callLookup, &CallsignLookup::photo, m_callInfo, &CallsignInfo::setPhoto);
+  connect (&m_callLookup, &CallsignLookup::notFound, m_callInfo, &CallsignInfo::setNotFound);
+  m_callLookup.setQrzLogin (m_config.qrz_xml_username (), m_config.qrz_xml_password ());
+}
+
+void MainWindow::update_callsign_info ()
+{
+  if (!m_callInfo) return;
+  auto const call = ui->dxCallEntry->text ().trimmed ().toUpper ();
+  if (call.size () < 3 || !m_callInfoAction->isChecked ())
+    {
+      m_callInfo->clear ();
+      return;
+    }
+  QString country;
+  auto const& record = m_logBook.countries ()->lookup (call);
+  country = record.entity_name;
+  m_callInfo->showCall (call, country);
+  m_callLookup.lookup (call);
 }
 
 void MainWindow::setup_main_splitter ()
