@@ -160,8 +160,8 @@ jobs:
         run: |
           cd wsjtx-build
           cpack -G DEB \
-            -D "CPACK_DEBIAN_FILE_NAME=wsjtx-${VERSION}-linux-${ARCH}.deb"
-          DEB="wsjtx-${VERSION}-linux-${ARCH}.deb"
+            -D "CPACK_DEBIAN_FILE_NAME=kf0kyldigi-${VERSION}-linux-${ARCH}.deb"
+          DEB="kf0kyldigi-${VERSION}-linux-${ARCH}.deb"
           if [ ! -f "$DEB" ]; then
             echo "::error::cpack -G DEB produced no .deb at expected path: $DEB"
             ls -la *.deb 2>/dev/null || true
@@ -176,8 +176,8 @@ jobs:
       - name: Upload .deb
         uses: actions/upload-artifact@v7
         with:
-          name: wsjtx-${{ inputs.version }}-linux-${{ inputs.arch }}-deb
-          path: wsjtx-build/wsjtx-${{ inputs.version }}-linux-${{ inputs.arch }}.deb
+          name: kf0kyldigi-${{ inputs.version }}-linux-${{ inputs.arch }}-deb
+          path: wsjtx-build/kf0kyldigi-${{ inputs.version }}-linux-${{ inputs.arch }}.deb
           if-no-files-found: error
 
       # RPM builds via the same CPack scaffolding the .deb step above
@@ -209,7 +209,7 @@ jobs:
       - name: Upload RPM
         uses: actions/upload-artifact@v7
         with:
-          name: wsjtx-${{ inputs.version }}-linux-${{ inputs.arch }}-rpm
+          name: kf0kyldigi-${{ inputs.version }}-linux-${{ inputs.arch }}-rpm
           path: wsjtx-build/*.rpm
           if-no-files-found: error
 
@@ -251,7 +251,7 @@ jobs:
           chmod +x linuxdeploy.AppImage linuxdeploy-plugin-qt.AppImage
 
           # --appimage-extract-and-run avoids FUSE on the hosted runner.
-          export OUTPUT="wsjtx-${VERSION}-linux-${ARCH}.AppImage"
+          export OUTPUT="kf0kyldigi-${VERSION}-linux-${ARCH}.AppImage"
           ./linuxdeploy.AppImage --appimage-extract-and-run \
             --appdir AppDir \
             --plugin qt \
@@ -267,7 +267,7 @@ jobs:
           VERSION: ${{ inputs.version }}
           ARCH: ${{ inputs.arch }}
         run: |
-          APPIMAGE="wsjtx-${VERSION}-linux-${ARCH}.AppImage"
+          APPIMAGE="kf0kyldigi-${VERSION}-linux-${ARCH}.AppImage"
           ./"$APPIMAGE" --appimage-extract >/dev/null
           test -x squashfs-root/usr/bin/wsjtx
           test -x squashfs-root/usr/bin/jt9
@@ -301,14 +301,14 @@ jobs:
       - name: Upload AppImage
         uses: actions/upload-artifact@v7
         with:
-          name: wsjtx-${{ inputs.version }}-linux-${{ inputs.arch }}-AppImage
-          path: wsjtx-${{ inputs.version }}-linux-${{ inputs.arch }}.AppImage
+          name: kf0kyldigi-${{ inputs.version }}-linux-${{ inputs.arch }}-AppImage
+          path: kf0kyldigi-${{ inputs.version }}-linux-${{ inputs.arch }}.AppImage
           if-no-files-found: error
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v7
         with:
-          name: wsjtx-${{ inputs.version }}-linux-${{ inputs.arch }}
+          name: kf0kyldigi-${{ inputs.version }}-linux-${{ inputs.arch }}
           path: |
             wsjtx-build/jt9
             wsjtx-build/wsprd

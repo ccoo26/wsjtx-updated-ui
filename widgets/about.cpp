@@ -13,10 +13,15 @@ CAboutDlg::CAboutDlg(QWidget *parent) :
 {
   ui->setupUi(this);
 
-  ui->labelTxt->setText ("<h2>" + QString {"WSJT-X v"
+  ui->labelTxt->setText ("<h2>" + QString {QCoreApplication::applicationName () + " v"
                                              + QCoreApplication::applicationVersion ()
                                              + " " + display_revision ()}.simplified () + "<br />"
-
+    "</h2>"
+    "by Carson Coordes, KF0KYL<br /><br />"
+    "<b>Based on WSJT-X " WSJTX_BASE_VERSION " by Joe Taylor, K1JT, and the<br />"
+    "WSJT Development Team.</b> This is a modified version and is<br />"
+    "not the official WSJT-X or endorsed by its authors.<br />"
+    "Source code: <a href=\"https://github.com/ccoo26/wsjtx-updated-ui\">github.com/ccoo26/wsjtx-updated-ui</a><br /><br />"
     "WSJT-X implements a number of digital modes designed for <br />"
     "weak-signal Amateur Radio communication.  <br /><br />"
     "&copy; 2001-2026 by Joe Taylor, K1JT, Bill Somerville, G4WJS, <br />"
@@ -29,7 +34,7 @@ CAboutDlg::CAboutDlg(QWidget *parent) :
     "K3WYC, KA1GT, KA6MAL, KA9Q, KB1ZMX, KD6EKQ, KG4IYS, KI7MT,<br />"
     "KK1D, ND0B, PY1ZRJ, PY2SDR, VE1SKY, VK3ACF, VK4BDJ,<br />"
     "VK7MO, VR2UPU, W3DJS, W4TI, W4TV, and W9MDB.<br /><br />"
-    "WSJT-X is licensed under the terms of Version 3 <br />"
+    "WSJT-X and KF0KYL Digi are licensed under the terms of Version 3 <br />"
     "of the GNU General Public License (GPL) <br /><br />"
     "<a href=" TO_STRING__ (PROJECT_HOMEPAGE) ">"
     "<img src=\":/icon_128x128.png\" /></a>"

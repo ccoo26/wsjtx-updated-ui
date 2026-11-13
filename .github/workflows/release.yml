@@ -172,10 +172,10 @@ jobs:
           # does not recurse into submodules on its own.
           git archive \
             --format=tar.gz \
-            --prefix="wsjtx-${VERSION}/" \
-            -o "artifacts/wsjtx-${VERSION}-src.tar.gz" \
+            --prefix="kf0kyldigi-${VERSION}/" \
+            -o "artifacts/kf0kyldigi-${VERSION}-src.tar.gz" \
             "${GITHUB_REF_NAME}"
-          ls -lh "artifacts/wsjtx-${VERSION}-src.tar.gz"
+          ls -lh "artifacts/kf0kyldigi-${VERSION}-src.tar.gz"
 
       - name: List artifacts
         run: find artifacts -type f | sort
@@ -214,11 +214,11 @@ jobs:
             "Windows x86_64 .exe"
           )
           patterns=(
-            "artifacts/wsjtx-${VERSION}-arm64-macOS.pkg/*.pkg"
-            "artifacts/wsjtx-${VERSION}-x86_64-macOS.pkg/*.pkg"
-            "artifacts/wsjtx-${VERSION}-linux-x86_64-AppImage/*.AppImage"
-            "artifacts/wsjtx-${VERSION}-linux-aarch64-AppImage/*.AppImage"
-            "artifacts/wsjtx-${VERSION}-windows-x86_64-installer/*.exe"
+            "artifacts/kf0kyldigi-${VERSION}-arm64-macOS.pkg/*.pkg"
+            "artifacts/kf0kyldigi-${VERSION}-x86_64-macOS.pkg/*.pkg"
+            "artifacts/kf0kyldigi-${VERSION}-linux-x86_64-AppImage/*.AppImage"
+            "artifacts/kf0kyldigi-${VERSION}-linux-aarch64-AppImage/*.AppImage"
+            "artifacts/kf0kyldigi-${VERSION}-windows-x86_64-installer/*.exe"
           )
           missing=0
           echo "Installer-grade artifact gate — checking 5 platforms…"

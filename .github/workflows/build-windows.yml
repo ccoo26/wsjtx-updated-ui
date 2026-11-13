@@ -250,7 +250,7 @@ jobs:
           # suffix gap.
           cpack -G NSIS -V \
             -D CPACK_PACKAGE_VERSION="${{ inputs.version }}" \
-            -D CPACK_PACKAGE_FILE_NAME="wsjtx-${{ inputs.version }}-win64"
+            -D CPACK_PACKAGE_FILE_NAME="kf0kyldigi-${{ inputs.version }}-win64"
           ls -la *.exe
           test -x map65/map65.exe
 
@@ -261,7 +261,7 @@ jobs:
       - name: Sign installer with self-signed ephemeral cert
         run: |
           cd wsjtx-build
-          INSTALLER=$(ls wsjtx-${{ inputs.version }}-*.exe | head -1)
+          INSTALLER=$(ls kf0kyldigi-${{ inputs.version }}-*.exe | head -1)
           if [ -z "$INSTALLER" ]; then
             echo "ERROR: no NSIS installer produced by cpack"
             ls -la
@@ -294,13 +294,13 @@ jobs:
       - name: Upload installer artifact
         uses: actions/upload-artifact@v7
         with:
-          name: wsjtx-${{ inputs.version }}-windows-x86_64-installer
-          path: wsjtx-build/wsjtx-${{ inputs.version }}-*.exe
+          name: kf0kyldigi-${{ inputs.version }}-windows-x86_64-installer
+          path: wsjtx-build/kf0kyldigi-${{ inputs.version }}-*.exe
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v7
         with:
-          name: wsjtx-${{ inputs.version }}-windows-x86_64
+          name: kf0kyldigi-${{ inputs.version }}-windows-x86_64
           path: |
             wsjtx-build/jt9.exe
             wsjtx-build/map65/map65.exe

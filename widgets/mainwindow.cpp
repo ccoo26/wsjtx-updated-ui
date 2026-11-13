@@ -554,11 +554,11 @@ MainWindow::MainWindow(QDir const& temp_directory, bool multiple,
       "Please be patient,\n"
       "this may take a few minutes", QString {}, 0, 1, this},
   m_messageClient {new MessageClient {QApplication::applicationName (),
-        version (), revision (),
+        WSJTX_BASE_VERSION, revision (),   // WSJT-X version for UDP client compatibility checks
         m_config.udp_server_name (), m_config.udp_server_port (),
         m_config.udp_interface_names (), m_config.udp_TTL (),
         this}},
-  m_psk_Reporter {&m_config, QString {"WSJT-X v" + version()}.simplified()},
+  m_psk_Reporter {&m_config, QString {PRODUCT_DISPLAY_NAME " v" + version()}.simplified()},
   m_manual {&m_network_manager},
   m_block_udp_status_updates {false},
   m_useDarkStyle {false}
@@ -1372,7 +1372,7 @@ MainWindow::MainWindow(QDir const& temp_directory, bool multiple,
 void MainWindow::not_GA_warning_message ()
 {
   MessageBox::critical_message (this,
-                                "This is a pre-release version of WSJT-X " + version (false) + " made\n"
+                                "This is a pre-release version of " PRODUCT_DISPLAY_NAME " " + version (false) + " made\n"
                                 "available for testing purposes.  By design it will\n"
                                 "be nonfunctional after Jan 15, 2025.");
   auto now = QDateTime::currentDateTimeUtc ();
@@ -1681,7 +1681,7 @@ void MainWindow::writeSettings()
 void MainWindow::update_tx5(const QString &qsy_text)
 {
   if (m_hisCall=="") {
-    QMessageBox::warning(this, "WSJT-X","There must be a callsign in the\n DX Call Box to send QSY Request");
+    QMessageBox::warning(this, PRODUCT_DISPLAY_NAME,"There must be a callsign in the\n DX Call Box to send QSY Request");
   } else {
     QString text = qsy_text;
     ui->tx6->setText(text.replace("$DX",m_hisCall));
@@ -4145,7 +4145,7 @@ QString MainWindow::userAgent() {
   QString platform = "(" + QSysInfo::prettyProductName()+"; "+QSysInfo::productType() + " " + QSysInfo::productVersion() + "; " +
                      QSysInfo::currentCpuArchitecture() + "; " +
                      QString("rv:%1").arg(QSysInfo::kernelVersion()) + ")";
-  QString userAgent = QString{"WSJT-X/" + version() + "_" + m_revision}.simplified() + " " +platform;
+  QString userAgent = QString{"KF0KYL-Digi/" + version() + "_" + m_revision + " WSJT-X/" WSJTX_BASE_VERSION}.simplified() + " " +platform;
   return userAgent;
   }
 
@@ -5301,7 +5301,7 @@ void MainWindow::on_actionKeyboard_shortcuts_triggered()
   <tr><td><b>Esc      </b></td><td>Stop Tx, abort QSO, clear next-call queue</td></tr>
   <tr><td><b>F1       </b></td><td>Online User's Guide (Alt: transmit Tx6)</td></tr>
   <tr><td><b>Shift+F1  </b></td><td>Copyright Notice</td></tr>
-  <tr><td><b>Ctrl+F1  </b></td><td>About WSJT-X</td></tr>
+  <tr><td><b>Ctrl+F1  </b></td><td>About KF0KYL Digi</td></tr>
   <tr><td><b>F2       </b></td><td>Open settings window (Alt: transmit Tx2)</td></tr>
   <tr><td><b>F3       </b></td><td>Display keyboard shortcuts (Alt: transmit Tx3)</td></tr>
   <tr><td><b>F4       </b></td><td>Clear DX Call, DX Grid, Tx messages 1-4 (Alt: transmit Tx4)</td></tr>
@@ -7884,7 +7884,7 @@ void MainWindow::guiUpdate()
       if(onAirFreq!=m_onAirFreq0) {
         m_onAirFreq0=onAirFreq;
         auto const& message = tr ("Please choose another Tx frequency."
-                                  " WSJT-X will not knowingly transmit another"
+                                  " KF0KYL Digi will not knowingly transmit another"
                                   " mode in the WSPR sub-band on 30m.");
         QTimer::singleShot (0, [=] { // don't block guiUpdate
             MessageBox::warning_message (this, tr ("WSPR Guard Band"), message);
@@ -7903,7 +7903,7 @@ void MainWindow::guiUpdate()
           if (m_tune) stop_tuning();
           auto const& message = tr ("Please choose another dial frequency.\n"
                                     "Must be 3Khz away from %1.\n"
-                                    "WSJT-X will not operate in Fox mode\n"
+                                    "KF0KYL Digi will not operate in Fox mode\n"
                                     "overlapping the standard FT8 sub-bands.").arg(ft8Freq[i]);
           QTimer::singleShot (0, [=] {               // don't block guiUpdate
             MessageBox::warning_message (this, tr ("Fox Mode warning"), message);
@@ -7920,7 +7920,7 @@ void MainWindow::guiUpdate()
           if (m_auto) auto_tx_mode (false);
           if (m_tune) stop_tuning();
           auto const& message = tr ("Please choose another dial frequency.\n"
-                                    "WSJT-X will not operate in Fox mode\n"
+                                    "KF0KYL Digi will not operate in Fox mode\n"
                                     "overlapping the WSPR sub-bands.").arg(ft8Freq[i]);
           QTimer::singleShot (0, [=] {               // don't block guiUpdate
             MessageBox::warning_message (this, tr ("Fox Mode warning"), message);

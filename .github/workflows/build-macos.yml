@@ -387,7 +387,7 @@ jobs:
         id: collect
         run: |
           BUILD=wsjtx-build
-          STAGE=stage/wsjtx-${{ inputs.version }}-${{ inputs.arch }}
+          STAGE=stage/kf0kyldigi-${{ inputs.version }}-${{ inputs.arch }}
           ASSETS=assets
 
           mkdir -p "${ASSETS}"
@@ -1036,7 +1036,7 @@ jobs:
             --install-location / \
             "$RUNNER_TEMP/wsjtx-component.pkg"
 
-          PKG_OUT="wsjtx-${{ inputs.version }}-${{ inputs.arch }}-macOS.pkg"
+          PKG_OUT="kf0kyldigi-${{ inputs.version }}-${{ inputs.arch }}-macOS.pkg"
           if [ "${{ steps.check_secrets.outputs.signing_enabled }}" = "true" ]; then
             INST_IDENTITY="${{ steps.keychain.outputs.installer_identity }}"
             productbuild \
@@ -1122,7 +1122,7 @@ jobs:
             xcrun stapler staple "$file"
           }
 
-          notarize_and_staple "wsjtx-${{ inputs.version }}-${{ inputs.arch }}-macOS.pkg"
+          notarize_and_staple "kf0kyldigi-${{ inputs.version }}-${{ inputs.arch }}-macOS.pkg"
 
       - name: Notarize CLI tools
         if: steps.check_secrets.outputs.signing_enabled == 'true'
@@ -1156,8 +1156,8 @@ jobs:
       - name: Upload pkg
         uses: actions/upload-artifact@v7
         with:
-          name: wsjtx-${{ inputs.version }}-${{ inputs.arch }}-macOS.pkg
-          path: wsjtx-${{ inputs.version }}-${{ inputs.arch }}-macOS.pkg
+          name: kf0kyldigi-${{ inputs.version }}-${{ inputs.arch }}-macOS.pkg
+          path: kf0kyldigi-${{ inputs.version }}-${{ inputs.arch }}-macOS.pkg
 
       - name: Package individual binaries
         run: |

@@ -1,7 +1,8 @@
 [Desktop Entry]
 Version=1.0
-Name=wsjtx
-Comment=Amateur Radio Weak Signal Operating
+Name=KF0KYL Digi
+GenericName=FT8 and Weak Signal Digital Modes
+Comment=Amateur radio weak signal operating, based on WSJT-X
 Exec=wsjtx
 Icon=wsjtx_icon
 Terminal=false

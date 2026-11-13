@@ -101,7 +101,7 @@ QString version (bool include_patch)
 QString program_title (QString const& revision)
 {
   QString id {QCoreApplication::applicationName () + "   v" + QCoreApplication::applicationVersion ()};
-  return id + " " + revision ;
+  return id + " " + revision + "   (based on WSJT-X " WSJTX_BASE_VERSION ")";
 }
 
 QString http_user_agent ()
@@ -113,5 +113,5 @@ QString http_user_agent ()
     + QSysInfo::currentCpuArchitecture () + "; "
     + QString {"rv:%1"}.arg (QSysInfo::kernelVersion ()) + ")"};
 
-  return QString {"WSJT-X/" + version () + "_" + revision ()}.simplified () + " " + platform;
+  return QString {"KF0KYL-Digi/" + version () + "_" + revision () + " WSJT-X/" WSJTX_BASE_VERSION}.simplified () + " " + platform;
 }

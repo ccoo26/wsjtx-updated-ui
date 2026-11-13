@@ -28,12 +28,12 @@ SplashScreen::SplashScreen ()
   : QSplashScreen {QPixmap {":/splash.png"}, Qt::WindowStaysOnTopHint}
 {
   setLayout (&m_->main_layout_);
-  showMessage ("<h2>" + QString {"WSJT-X v" +
+  showMessage ("<h2>" + QString {QCoreApplication::applicationName () + " v" +
         QCoreApplication::applicationVersion() + " " +
         revision ()}.simplified () + "</h2>"
-    "Send issue reports to https://wsjtx.groups.io, and be sure to save .wav<br />"
-    "files where appropriate.<br /><br />"
-    "<b>Open the Help menu and select Release Notes for more details.</b><br />"
+    "by Carson Coordes, KF0KYL &mdash; based on WSJT-X " WSJTX_BASE_VERSION " by K1JT and the WSJT Development Team.<br />"
+    "This modified version is not supported by the WSJT-X team: please don't send<br />"
+    "its issue reports to the WSJT-X groups.<br /><br />"
     "<img src=\":/icon_128x128.png\" />"
     "<img src=\":/gpl-v3-logo.svg\" height=\"80\" />", Qt::AlignCenter);
   connect (&m_->checkbox_, &QCheckBox::stateChanged, [this] (int s) {

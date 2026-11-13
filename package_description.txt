@@ -1,3 +1,8 @@
+KF0KYL Digi is a modified version of WSJT-X by Carson Coordes, KF0KYL,
+adding a Windows 11 style interface, dark mode, an embedded waterfall,
+QRZ.com logbook upload and callsign lookup. It is not the official
+WSJT-X and is not endorsed by the WSJT Development Team.
+
 WSJT-X is a computer program designed to facilitate basic amateur
 radio communication using very weak signals. The first four letters in
 the program name stand for `(W)eak (S)ignal communication by K1(JT),`

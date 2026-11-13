@@ -61,10 +61,18 @@ if (POLICY CMP0075)
 endif ()
 
 project (wsjtx
-  VERSION 3.0.2.0
+  VERSION 1.0.0.0
   LANGUAGES C CXX Fortran
   )
-set (PROJECT_DESCRIPTION "WSJT-X: Digital Modes for Weak Signal Communications in Amateur Radio")
+# KF0KYL Digi is a modified version of WSJT-X. Per the WSJT trademark policy
+# (TRADEMARK.md) it carries its own name, icon and version numbers; internal
+# file names (wsjtx, jt9, ...) are unchanged. WSJTX_BASE_VERSION is the WSJT-X
+# release it is based on, reported to UDP clients (JTAlert, GridTracker...)
+# so their version checks keep working.
+set (PRODUCT_DISPLAY_NAME "KF0KYL Digi")
+set (WSJTX_BASE_VERSION "3.0.2")
+add_compile_definitions (PRODUCT_DISPLAY_NAME="KF0KYL Digi" WSJTX_BASE_VERSION="3.0.2")
+set (PROJECT_DESCRIPTION "KF0KYL Digi: Digital Modes for Weak Signal Communications in Amateur Radio, based on WSJT-X")
 set (CMAKE_PROJECT_DESCRIPTION ${PROJECT_DESCRIPTION})
 set (CMAKE_AUTOUIC ON)
 
@@ -114,11 +122,11 @@ set (wsjtx_VERSION "${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_
 #
 # project information
 #
-set (PROJECT_BUNDLE_NAME "WSJT-X")
-set (PROJECT_VENDOR "WSJT Development Group")
+set (PROJECT_BUNDLE_NAME "KF0KYL Digi")
+set (PROJECT_VENDOR "Carson Coordes, KF0KYL")
 set (PROJECT_CONTACT "joe@princetion.edu")
-set (PROJECT_COPYRIGHT "Copyright (C) 2001-2026 by Joe Taylor, K1JT")
-set (PROJECT_HOMEPAGE https://wsjt.sourceforge.io/wsjtx.html)
+set (PROJECT_COPYRIGHT "Copyright (C) 2001-2026 by Joe Taylor, K1JT and the WSJT Development Team; modifications Copyright (C) 2026 Carson Coordes, KF0KYL")
+set (PROJECT_HOMEPAGE https://github.com/ccoo26/wsjtx-updated-ui)
 set (PROJECT_MANUAL wsjtx-main)
 set (PROJECT_MANUAL_DIRECTORY_URL https://wsjt.sourceforge.io/wsjtx-doc/)
 set (PROJECT_SAMPLES_URL http://downloads.sourceforge.net/project/wsjt/)
@@ -2076,7 +2084,11 @@ endif ()
 #
 set (CPACK_PACKAGE_DESCRIPTION_FILE "${CMAKE_SOURCE_DIR}/package_description.txt")
 set (CPACK_MONOLITHIC_INSTALL 1)
-set (CPACK_PACKAGE_NAME "${CMAKE_PROJECT_NAME}")
+set (CPACK_PACKAGE_NAME "kf0kyldigi")
+set (CPACK_PACKAGE_VENDOR "${PROJECT_VENDOR}")
+set (CPACK_PACKAGE_DESCRIPTION_SUMMARY "KF0KYL Digi - digital modes for amateur radio (based on WSJT-X)")
+set (CPACK_PACKAGE_INSTALL_DIRECTORY "KF0KYL Digi")
+set (CPACK_PACKAGE_INSTALL_REGISTRY_KEY "KF0KYL Digi")
 set (CPACK_PACKAGE_VERSION_MAJOR ${PROJECT_VERSION_MAJOR})
 set (CPACK_PACKAGE_VERSION_MINOR ${PROJECT_VERSION_MINOR})
 set (CPACK_PACKAGE_VERSION_PATCH "${PROJECT_VERSION_PATCH}${BUILD_TYPE_REVISION}")
@@ -2120,8 +2132,8 @@ set (CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
 # so installing this .deb on a system carrying any of them doesn't fail with a
 # file conflict and doesn't cascade-remove `js8call` or other consumers.
 set (CPACK_DEBIAN_PACKAGE_PROVIDES "wsjtx-data (= ${wsjtx_VERSION}), wsjtx-doc (= ${wsjtx_VERSION}), wsjtx-improved-data (= ${wsjtx_VERSION}), wsjtx-improved-doc (= ${wsjtx_VERSION})")
-set (CPACK_DEBIAN_PACKAGE_REPLACES "wsjtx-data, wsjtx-doc, wsjtx-improved-data, wsjtx-improved-doc")
-set (CPACK_DEBIAN_PACKAGE_CONFLICTS "wsjtx-data (<< ${wsjtx_VERSION}), wsjtx-doc (<< ${wsjtx_VERSION}), wsjtx-improved-data (<< ${wsjtx_VERSION}), wsjtx-improved-doc (<< ${wsjtx_VERSION})")
+set (CPACK_DEBIAN_PACKAGE_REPLACES "wsjtx, wsjtx-improved, wsjtx-data, wsjtx-doc, wsjtx-improved-data, wsjtx-improved-doc")
+set (CPACK_DEBIAN_PACKAGE_CONFLICTS "wsjtx, wsjtx-improved, wsjtx-data (<< ${wsjtx_VERSION}), wsjtx-doc (<< ${wsjtx_VERSION}), wsjtx-improved-data (<< ${wsjtx_VERSION}), wsjtx-improved-doc (<< ${wsjtx_VERSION})")
 
 set (CPACK_RPM_PACKAGE_ARCHITECTURE ${CMAKE_SYSTEM_PROCESSOR})
 set (CPACK_RPM_PACKAGE_REQUIRES "qt5-qtbase >= 5.9, qt5-qtserialport >= 5.9, qt5-qtmultimedia >= 5.9, qt5-qtwebsockets >= 5.9, qt5-qtsvg >= 5.9, libusbx >= 1.0.22, libgfortran >= 7, libgomp >= 7, fftw-libs-single >= 3.3, boost-log >= 1.62")

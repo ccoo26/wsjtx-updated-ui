@@ -9,6 +9,9 @@
 #include <fftw3.h>
 
 #include <QApplication>
+#include <cstring>
+#include <QFileInfo>
+#include <QFile>
 #include <QSharedMemory>
 #include <QProcessEnvironment>
 #include <QTemporaryFile>
@@ -104,6 +107,63 @@ namespace
   }
 }
 
+
+namespace
+{
+  // Copy a folder tree, skipping anything that already exists at the
+  // destination and the "save" folder of recordings (can be huge).
+  void copy_tree (QDir const& from, QDir const& to)
+  {
+    to.mkpath (".");
+    for (auto const& info : from.entryInfoList (QDir::NoDotAndDotDot | QDir::Files | QDir::Dirs | QDir::Hidden))
+      {
+        auto const target = to.absoluteFilePath (info.fileName ());
+        if (info.isDir ())
+          {
+            if (info.fileName () == "save") continue;
+            copy_tree (QDir {info.absoluteFilePath ()}, QDir {target});
+          }
+        else if (!QFileInfo::exists (target))
+          {
+            QFile::copy (info.absoluteFilePath (), target);
+          }
+      }
+  }
+
+  // KF0KYL Digi keeps its settings and data under its own name so it can sit
+  // alongside the official WSJT-X. The first time it runs, copy the WSJT-X
+  // settings file and data folder (log, ALL.TXT, QRZ upload history...) so
+  // nothing has to be set up again. WSJT-X's own files are left untouched.
+  void migrate_from_wsjtx ()
+  {
+    auto const new_name = QCoreApplication::applicationName ();
+    if (!new_name.startsWith (PRODUCT_DISPLAY_NAME)) return;
+    auto old_name = new_name;
+    old_name.replace (0, int (strlen (PRODUCT_DISPLAY_NAME)), "WSJT-X");
+
+    QDir const config_dir {QStandardPaths::writableLocation (QStandardPaths::ConfigLocation)};
+    auto const new_ini = config_dir.absoluteFilePath (new_name + ".ini");
+    auto const old_ini = config_dir.absoluteFilePath (old_name + ".ini");
+    if (QFileInfo::exists (new_ini) || !QFileInfo::exists (old_ini)) return;   // already done, or nothing to copy
+
+    config_dir.mkpath (".");
+    QFile::copy (old_ini, new_ini);
+
+    // the data folder is named after the application too
+    auto const new_data = QStandardPaths::writableLocation (QStandardPaths::DataLocation);
+    auto old_data = new_data;
+    auto const pos = old_data.lastIndexOf (new_name);
+    if (pos >= 0)
+      {
+        old_data.replace (pos, new_name.size (), old_name);
+        if (QDir {old_data}.exists ())
+          {
+            copy_tree (QDir {old_data}, QDir {new_data});
+          }
+      }
+  }
+}
+
 int main(int argc, char *argv[])
 {
   init_random_seed ();
@@ -141,7 +201,7 @@ int main(int argc, char *argv[])
       std::locale::global (std::locale::classic ());
 
       // Override programs executable basename as application name.
-      a.setApplicationName ("WSJT-X");
+      a.setApplicationName (PRODUCT_DISPLAY_NAME);
       a.setApplicationVersion (version ());
 
       QCommandLineParser parser;
@@ -219,6 +279,9 @@ int main(int argc, char *argv[])
       // now we have the application name we can open the logging and settings
       WSJTXLogging lg;
       LOG_INFO (program_title (revision ()) << " - Program startup");
+      // first run as KF0KYL Digi: bring over the WSJT-X settings and log
+      migrate_from_wsjtx ();
+
       MultiSettings multi_settings {parser.value (cfg_option)};
 
       // find the temporary files path
