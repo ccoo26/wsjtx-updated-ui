@@ -101,7 +101,7 @@ QString version (bool include_patch)
 QString program_title (QString const& revision)
 {
   QString id {QCoreApplication::applicationName () + "   v" + QCoreApplication::applicationVersion ()};
-  return id + " " + revision + "   (based on WSJT-X " WSJTX_BASE_VERSION ")";
+  return id + " " + revision;
 }
 
 QString http_user_agent ()
