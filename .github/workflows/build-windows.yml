@@ -185,7 +185,14 @@ jobs:
             -Wno-dev
 
       - name: Build
-        run: cmake --build wsjtx-build -j$(nproc)
+        # Parallel Fortran builds on Windows occasionally fail with
+        # "Cannot rename module file ... Permission denied" when two jobs
+        # touch the same .mod file. If that happens, finish single-threaded.
+        run: |
+          cmake --build wsjtx-build -j$(nproc) || {
+            echo "::warning::Parallel build failed, retrying single-threaded"
+            cmake --build wsjtx-build -j1
+          }
 
       - name: Run tests
         id: ctest
