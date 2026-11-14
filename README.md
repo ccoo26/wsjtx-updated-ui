@@ -138,9 +138,15 @@ PSK Reporter spots are identified as KF0KYL Digi.
 **Is it safe to run alongside WSJT-X?** Yes on Windows: separate install folder, settings
 and log. Just don't run both on the same radio at the same time.
 
-**Where are my settings?** Windows: `%LOCALAPPDATA%\KF0KYL Digi.ini` and the
-`%LOCALAPPDATA%\KF0KYL Digi\` folder (log, ALL.TXT). Linux: `~/.config/KF0KYL Digi.ini` and
-`~/.local/share/KF0KYL Digi/`. Use **File → Open log directory** to jump there.
+**Where are my settings?** Windows: the `%LOCALAPPDATA%\KF0KYL Digi\` folder holds
+`KF0KYL Digi.ini` and your log, ALL.TXT and QRZ upload history. Linux:
+`~/.config/KF0KYL Digi.ini` and `~/.local/share/KF0KYL Digi/`. Use
+**File → Open log directory** to jump there.
+
+**My WSJT-X settings didn't come over.** They're copied only on the very first start, and
+version 1.0.0 missed them on Windows (fixed in 1.0.1). To copy them by hand, close
+KF0KYL Digi, then copy `%LOCALAPPDATA%\WSJT-X\WSJT-X.ini` into `%LOCALAPPDATA%\KF0KYL Digi\`
+and rename it to `KF0KYL Digi.ini`. Copy `wsjtx_log.adi` and `qrz_uploaded.txt` too.
 
 **Found a bug or have an idea?** Open an
 [issue](https://github.com/ccoo26/KF0KYL-Digi/issues).

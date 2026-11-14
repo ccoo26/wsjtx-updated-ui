@@ -112,7 +112,7 @@ namespace
 {
   // Copy a folder tree, skipping anything that already exists at the
   // destination and the "save" folder of recordings (can be huge).
-  void copy_tree (QDir const& from, QDir const& to)
+  void copy_tree (QDir const& from, QDir const& to, QString const& skip_file = QString {})
   {
     to.mkpath (".");
     for (auto const& info : from.entryInfoList (QDir::NoDotAndDotDot | QDir::Files | QDir::Dirs | QDir::Hidden))
@@ -121,9 +121,9 @@ namespace
         if (info.isDir ())
           {
             if (info.fileName () == "save") continue;
-            copy_tree (QDir {info.absoluteFilePath ()}, QDir {target});
+            copy_tree (QDir {info.absoluteFilePath ()}, QDir {target}, skip_file);
           }
-        else if (!QFileInfo::exists (target))
+        else if (info.fileName () != skip_file && !QFileInfo::exists (target))
           {
             QFile::copy (info.absoluteFilePath (), target);
           }
@@ -134,6 +134,16 @@ namespace
   // alongside the official WSJT-X. The first time it runs, copy the WSJT-X
   // settings file and data folder (log, ALL.TXT, QRZ upload history...) so
   // nothing has to be set up again. WSJT-X's own files are left untouched.
+  // Swap the application name inside a path. On Windows the settings and
+  // data folders are named after the application (...\AppData\Local\WSJT-X\),
+  // on Linux only the data folder is (~/.local/share/WSJT-X/).
+  QString with_name (QString path, QString const& from, QString const& to)
+  {
+    auto const pos = path.lastIndexOf (from);
+    if (pos >= 0) path.replace (pos, from.size (), to);
+    return path;
+  }
+
   void migrate_from_wsjtx ()
   {
     auto const new_name = QCoreApplication::applicationName ();
@@ -141,25 +151,21 @@ namespace
     auto old_name = new_name;
     old_name.replace (0, int (strlen (PRODUCT_DISPLAY_NAME)), "WSJT-X");
 
-    QDir const config_dir {QStandardPaths::writableLocation (QStandardPaths::ConfigLocation)};
-    auto const new_ini = config_dir.absoluteFilePath (new_name + ".ini");
-    auto const old_ini = config_dir.absoluteFilePath (old_name + ".ini");
+    auto const new_config = QStandardPaths::writableLocation (QStandardPaths::ConfigLocation);
+    auto const old_config = with_name (new_config, new_name, old_name);
+    auto const new_ini = QDir {new_config}.absoluteFilePath (new_name + ".ini");
+    auto const old_ini = QDir {old_config}.absoluteFilePath (old_name + ".ini");
     if (QFileInfo::exists (new_ini) || !QFileInfo::exists (old_ini)) return;   // already done, or nothing to copy
 
-    config_dir.mkpath (".");
+    QDir {new_config}.mkpath (".");
     QFile::copy (old_ini, new_ini);
 
-    // the data folder is named after the application too
+    // the data folder (log, ALL.TXT, QRZ upload history...)
     auto const new_data = QStandardPaths::writableLocation (QStandardPaths::DataLocation);
-    auto old_data = new_data;
-    auto const pos = old_data.lastIndexOf (new_name);
-    if (pos >= 0)
+    auto const old_data = with_name (new_data, new_name, old_name);
+    if (old_data != new_data && QDir {old_data}.exists ())
       {
-        old_data.replace (pos, new_name.size (), old_name);
-        if (QDir {old_data}.exists ())
-          {
-            copy_tree (QDir {old_data}, QDir {new_data});
-          }
+        copy_tree (QDir {old_data}, QDir {new_data}, old_name + ".ini");
       }
   }
 }
