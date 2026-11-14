@@ -1,143 +1,138 @@
-# Contributing to WSJT-X
+# Contributing to KF0KYL Digi
+
+Thanks for your interest in KF0KYL Digi! Bug reports, ideas and code are all welcome.
 
 ## Overview
 
-**WSJT-X** and its sister programs **MAP65** and **QMAP** are open-source applications designed to facilitate weak-signsl ham radio communication. The project was started in 2001 and became an open-source effort in 2005. Our core development team has grown slowly over time, and in May 2026 consists of seven members. 
+KF0KYL Digi is a modified version of [WSJT-X](https://wsjt.sourceforge.io/wsjtx.html) 3.0.2,
+maintained by Carson Coordes, KF0KYL. It keeps WSJT-X's decoders, modes and rig control
+unchanged and adds interface and convenience features on top: a Windows 11 style theme
+and dark mode, the waterfall in the main window, automatic QRZ Logbook upload, and
+callsign info for the station you're working. See [MODIFICATIONS.md](MODIFICATIONS.md)
+for the full list.
 
-We welcome contributions to these programs from outside the core development team. This document provides a brief summary of how the WSJT-X GitHub repositories are organized, how the development team operates, and how outside contributions can be made.
+It's a one-person, spare-time project, so please be patient with replies.
 
-## Repository Structure
+## Where to report what
 
-We use two GitHub repositories. Public site https://github.com/WSJTX/wsjtx receives updated code whenever a general availability (GA) program version is released. Anyone can submit  [Issues](https://github.com/WSJTX/wsjtx/issues) to be raised and discussed, as well as Bug Reports and [Pull Requests](https://github.com/WSJTX/wsjtx/pulls). External contributors should fork the public repo and submit pull requests based on that code.
+**Problems with KF0KYL Digi** (anything in the list above, installing, the theme, the
+waterfall, QRZ upload or lookup, settings, crashes): open an
+[Issue here](https://github.com/ccoo26/KF0KYL-Digi/issues). Please **don't** send these to
+the WSJT-X team or their groups; they don't support this version.
 
-Development work by team members, including acceptance testing of outside pull requests, takes place in a private repository. At any particular time team members may be developing or experimenting with program features that are not yet ready for distribution or general use.
+**Problems that also happen in the official WSJT-X** (decoding, a mode's behaviour, rig
+control): those belong to the WSJT-X developers. Check whether the official WSJT-X does the
+same thing, and if it does, report it at
+[github.com/WSJTX/wsjtx/issues](https://github.com/WSJTX/wsjtx/issues). Fixes made there
+will come into KF0KYL Digi with the next update.
 
-## Building from Source
-Source code for WSJT-X, MAP65, and QMAP together amounts to more than 130,000 lines of C++, 75,000 lines of Fortran, and 18,000 lines of C. User interfaces use the Qt framework and are mostly written in C++, while signal processing and message encoding/decoding are done in Fortran. Required external libraries include FFTW3, Boost, libUSB, and Hamlib. The applications and related utility programs are multi-platform and can be built and used on the Windows, macOS, and Linux. We use CMake and Qt5, and we build Hamlib locally before building WSJT-X.
+When opening an Issue, please include:
 
-### Prerequisites
+- KF0KYL Digi version (Help → About) and your operating system (Windows 11, Raspberry Pi OS 64-bit, ...)
+- Your radio and how it's connected, if relevant
+- What you did, what you expected, and what happened instead
+- Screenshots, and for crashes the log files from **File → Open log directory**
 
-**All platforms:**
-- CMake 3.16+
-- Qt 5.12+ (Core, Widgets, Multimedia, SerialPort, Network, Sql, LinguistTools)
-- FFTW 3 (single precision — `libfftw3f`)
-- Boost C++ libraries
-- Compilers for C++ and FORTRAN, typically gcc and gfortran
-- Git
+**Never post your QRZ password or Logbook API key** in an Issue or screenshot.
 
-**Linux (Debian/Ubuntu):**
-```
+## Ideas and feature requests
+
+Open an Issue describing what you'd like and why it would help on the air. Features that
+make everyday operating easier are the best fit; changes to how modes encode or decode
+are better proposed to the WSJT-X team.
+
+## Code contributions (pull requests)
+
+1. Fork [ccoo26/KF0KYL-Digi](https://github.com/ccoo26/KF0KYL-Digi) on GitHub.
+2. Create a branch, make your change, and push it to your fork.
+3. Open a pull request against `master` here, explaining what it does, why, and which
+   platforms you tested on.
+
+GitHub Actions builds every push for Windows, Linux x86-64 and Linux ARM64 (Raspberry Pi),
+so you can download and test the installers from your own fork's **Actions** tab without
+setting up a build environment.
+
+### Guidelines
+
+- **One pull request per change.** Don't bundle unrelated fixes.
+- **Leave the decoders, timing and rig control alone** (`lib/`, audio, T/R sequencing,
+  Hamlib) unless the change also belongs in WSJT-X. Keeping these identical is what makes
+  KF0KYL Digi behave exactly like WSJT-X on the air and lets us take in WSJT-X updates.
+- **Keep the name.** Don't reintroduce "WSJT-X" as the program's name in anything users
+  see; the WSJT-X [trademark policy](TRADEMARK.md) requires modified versions to use their
+  own name. Credit lines such as "based on WSJT-X" are fine.
+- **Don't break other programs.** Tools like JTAlert and GridTracker talk to KF0KYL Digi
+  over the WSJT-X UDP protocol; keep it compatible.
+- **Protect user data.** Never log or display passwords or API keys, and don't change
+  where settings are stored without migrating them.
+- **Test it.** Build and run on your platform. Changes near decoding should be checked
+  with the sample `.wav` files (File → Open).
+
+### Coding conventions
+
+Same as WSJT-X:
+
+- **C++:** Qt style. Classes in `PascalCase`, methods in `camelCase`, header guards as
+  `FILENAME_HPP_`, 2-space indentation.
+- **Fortran:** traditional style; signal processing lives in `lib/`.
+- **Comments:** a short block comment above new classes and functions, inline comments
+  where the logic isn't obvious.
+
+## Building from source
+
+The easiest way to build is to fork the repository and let GitHub Actions do it. To build
+on your own computer you need CMake 3.16+, Qt 5.12+ (Core, Widgets, Multimedia,
+SerialPort, Network, Sql, LinguistTools), FFTW 3 (single precision), Boost, C++ and
+Fortran compilers (gcc / gfortran), and Git.
+
+**Debian / Ubuntu / Raspberry Pi OS:**
+```bash
 sudo apt install build-essential cmake gfortran \
   qtbase5-dev qttools5-dev qtmultimedia5-dev libqt5serialport5-dev \
   libfftw3-dev libboost-all-dev libusb-1.0-0-dev libudev-dev \
   autoconf automake libtool pkg-config texinfo
 ```
 
-**macOS:**
-```
-brew install cmake gcc qt@5 fftw boost libusb autoconf automake libtool pkg-config texinfo
-```
-Xcode command-line tools are also required (`xcode-select --install`).
+**Windows:** use [MSYS2](https://www.msys2.org) with the **UCRT64** environment (the older
+MINGW64 environment is being retired by MSYS2). `.github/workflows/build-windows.yml`
+lists the exact packages and steps.
 
-**Windows:**
-Windows builds use the [Hamlib SDK](https://sourceforge.net/projects/hamlib-sdk/), which provides all prerequisite libraries and MinGW tooling. See the INSTALL file for detailed Windows instructions.
+### 1. Build Hamlib
 
-### First Step: Build Hamlib
-
-WSJT-X requires a specific Hamlib version. Check `ci.yml` in `.github/workflows/` for the current `hamlib_branch` value — this is what CI builds against and what your local build should match.
+Use the Hamlib version that `ci.yml` in `.github/workflows/` builds against
+(`hamlib_branch`, currently 4.7.1).
 
 ```bash
-# Replace HAMLIB_BRANCH with the current value from ci.yml (e.g., "4.7.1"):
 HAMLIB_BRANCH="4.7.1"
-
-mkdir -p ~/hamlib-prefix/build
-cd ~/hamlib-prefix
+mkdir -p ~/hamlib-prefix/build && cd ~/hamlib-prefix
 git clone https://github.com/Hamlib/Hamlib src
-cd src
-git checkout $HAMLIB_BRANCH
-./bootstrap
-mkdir ../build && cd ../build
+cd src && git checkout $HAMLIB_BRANCH && ./bootstrap
+cd ../build
 ../src/configure --prefix=$HOME/hamlib-prefix \
   --disable-shared --enable-static \
   --without-cxx-binding --disable-winradio \
-  CFLAGS="-g -O2 -fdata-sections -ffunction-sections" \
+  CFLAGS="-g -O2 -fdata-sections -ffunction-sections -include assert.h" \
   LDFLAGS="-Wl,--gc-sections"
-make
-make install-strip
+make && make install-strip
 ```
 
-### Building WSJT-X
+### 2. Build KF0KYL Digi
 
-Fork the public repo:
 ```bash
-git clone https://github.com/YOUR_USERNAME/wsjtx.git ~/wsjtx-prefix/src
-cd ~/wsjtx-prefix/src
-git remote add upstream https://github.com/WSJTX/wsjtx.git
-```
-
-Then build:
-```bash
-mkdir -p ~/wsjtx-prefix/build && cd ~/wsjtx-prefix/build
+git clone https://github.com/YOUR_USERNAME/KF0KYL-Digi.git ~/kf0kyldigi/src
+mkdir -p ~/kf0kyldigi/build && cd ~/kf0kyldigi/build
 cmake -DCMAKE_PREFIX_PATH="$HOME/hamlib-prefix" ../src
-cmake --build .
+cmake --build . -j$(nproc)
+./wsjtx
 ```
 
-On macOS, add Qt5 and other Homebrew paths to `CMAKE_PREFIX_PATH`:
-```bash
-cmake -DCMAKE_PREFIX_PATH="$HOME/hamlib-prefix;$(brew --prefix qt@5);$(brew --prefix fftw);$(brew --prefix boost)" \
-  -DCMAKE_Fortran_COMPILER=$(brew --prefix gcc)/bin/gfortran ../src
-```
+Internal file names (`wsjtx`, `jt9`, ...) are the same as WSJT-X's on purpose; the program
+itself runs as KF0KYL Digi.
 
-### Updating and Rebuilding
+## Licence
 
-```bash
-# Update Hamlib
-cd ~/hamlib-prefix/src && git pull
-cd ~/hamlib-prefix/build && make && make install-strip
+KF0KYL Digi, like WSJT-X, is licensed under the GNU General Public License v3.0 (see
+[COPYING](COPYING)). By contributing you agree that your contribution is licensed under
+the same terms.
 
-# Update WSJT-X
-cd ~/wsjtx-prefix/src && git pull
-cd ~/wsjtx-prefix/build && cmake --build .
-```
-## Bug Reports
-
-Users and external contributors should file bug reports as Issues on the [public repo](https://github.com/WSJTX/wsjtx/issues). A team member will forward the Issue to `wsjtx-internal` if triage reveals development work to be done.
-
-When filing an Issue, please include:
-
-- WSJT-X version and operating system
-- Steps to reproduce
-- Expected vs. actual behavior
-- Relevant log output or screenshots
-
-## Pull Requests
-
-### Basic steps for external contributors
-
-1. Fork `WSJTX/wsjtx` on GitHub.
-
-2. Create a branch, make your changes, push to your fork.
-
-3. Open a PR from your fork to `WSJTX/wsjtx` targeting `master`.
-
-4. A team member reviews the PR. If accepted, they port the change to wsjtx-internal where it enters the normal development flow and CI validation.
-
-5. The change reaches the public repo at the next tagged release.
-
-This indirection exists because the public repo only receives code at release time. Merging directly to `master` would put it out of sync with internal development.
-
-### General guidelines
-
-- **One PR per logical change.** Don't bundle unrelated fixes.
-- **Test your changes.** Build on your platform and verify the application runs. If your change affects decoding, test with known `.wav` files.
-- **Include in the PR description:** what the change does, why, which platforms you tested on, and related issue numbers.
-- **Be patient.** The core developers are volunteers with other commitments. PRs may take days or weeks to review.
-
-### Coding Conventions
-
-- **C++:** Qt-style naming. Classes use `PascalCase`, methods use `camelCase`. Header guards use `FILENAME_HPP_` format.
-- **Fortran:** Traditional Fortran style. Signal processing and codec code lives in `lib/`.
-- **Indentation:** 2 spaces in C++, standard Fortran indentation in `.f90` files.
-- **Comments:** Descriptive block comments above classes and functions. Inline comments where logic is non-obvious.
-- **License:** All source files are GPL-3.0. New files should include the appropriate license header.
-
+73 de KF0KYL
